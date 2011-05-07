@@ -102,6 +102,7 @@ public:
             switch(creature->GetEntry())
             {
                 case NPC_DRAKOS:
+                    AchievRunning = false;
                     drakosGUID = creature->GetGUID();
                     break;
                 case NPC_VAROS:
@@ -256,6 +257,27 @@ public:
             } else OUT_LOAD_INST_DATA_FAIL;
 
             OUT_LOAD_INST_DATA_COMPLETE;
+        }
+
+        bool AchievRunning;
+        uint32 uiAchievTimer;
+        void Update(uint32 diff)
+        {
+            if (!instance->HavePlayers())
+                return;
+            if (instance->IsHeroic())
+            {
+                if (GetBossState(DATA_DRAKOS_EVENT) == DONE && !AchievRunning)
+                {
+                    uiAchievTimer = diff + 1200000;
+                    AchievRunning = true;
+                }
+
+                //Achievement Make it Count!
+                if (GetBossState(DATA_EREGOS_EVENT) == DONE && diff <= uiAchievTimer)
+                    DoCompleteAchievement(1868);
+            }
+
         }
         private:
             uint64 drakosGUID;

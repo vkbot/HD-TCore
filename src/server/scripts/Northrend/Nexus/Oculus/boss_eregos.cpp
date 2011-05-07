@@ -110,6 +110,14 @@ enum EmeraldDrake
     SPELL_EMERALD_DREAM_FUNNEL                    = 50344         //(60 yds) - Channeled - Transfers 5% of the caster's max health to a friendly drake every second for 10 seconds as long as the caster channels.
 };
 
+enum EregosAchievements
+{
+    ACHIEV_AMBER_VOID          = 2046,
+    ACHIEV_RUBY_VOID           = 2044,
+    ACHIEV_EMERALD_VOID        = 2045,
+    ACHIEV_EXPERT_RIDER        = 1871
+};
+
 class boss_eregos : public CreatureScript
 {
 public:
@@ -122,7 +130,12 @@ public:
 
     struct boss_eregosAI : public BossAI
     {
-        boss_eregosAI(Creature* creature) : BossAI(creature, DATA_EREGOS_EVENT) { }
+        boss_eregosAI(Creature* creature) : BossAI(creature, DATA_EREGOS_EVENT) 
+        {
+            pInstance = creature->GetInstanceScript();
+        }
+
+        InstanceScript* pInstance;
 
         void Reset()
         {
@@ -231,9 +244,52 @@ public:
             DoMeleeAttackIfReady();
         }
 
+        bool bRDrake;
+        bool bEDrake;
+        bool bADrake;
+
         void JustDied(Unit* /*killer*/)
         {
             Talk(SAY_DEATH);
+
+            //Rewards
+
+            //Achievements
+            bRDrake = false;
+            bEDrake = false;
+            bADrake = false;
+
+            if (IsHeroic())
+            {
+                Map::PlayerList const &players = pInstance->instance->GetPlayers();
+                for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                {
+                    // Checks
+                    if (Unit* pDrake = itr->getSource()->GetVehicleBase())
+                    {
+                        if (pDrake->GetEntry() == NPC_AMBER_DRAKE_VEHICLE)
+                            bADrake = true;
+                        if (pDrake->GetEntry() == NPC_RUBY_DRAKE_VEHICLE)
+                            bRDrake = true;
+                        if(pDrake->GetEntry() == NPC_EMERALD_DRAKE_VEHICLE)
+                            bEDrake = true;
+                    }
+                }
+
+                // Complete achieves
+                if (!bADrake)
+                    pInstance->DoCompleteAchievement(ACHIEV_AMBER_VOID);
+                if (!bRDrake)
+                    pInstance->DoCompleteAchievement(ACHIEV_RUBY_VOID);
+                if (!bEDrake)
+                    pInstance->DoCompleteAchievement(ACHIEV_EMERALD_VOID);
+            }
+
+            // Loot
+            if (IsHeroic())
+                me->SummonGameObject(GO_CACHE_OF_EREGOS_H, 1015.06f, 1051.09f, 605.619f, 0.017452f, 0, 0, 0, 0, TEMPSUMMON_MANUAL_DESPAWN);
+            else
+                me->SummonGameObject(GO_CACHE_OF_EREGOS_N, 1015.06f, 1051.09f, 605.619f, 0.017452f, 0, 0, 0, 0, TEMPSUMMON_MANUAL_DESPAWN);
 
             _JustDied();
         }

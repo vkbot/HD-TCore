@@ -424,6 +424,7 @@ class Creature : public Unit, public GridObject<Creature>
         void SelectLevel(const CreatureTemplate *cinfo);
         void LoadEquipment(uint32 equip_entry, bool force=false);
 
+	uint32 GetGossipTextId();
         uint32 GetDBTableGUIDLow() const { return m_DBTableGuid; }
 
         void Update(uint32 time);                         // overwrited Unit::Update

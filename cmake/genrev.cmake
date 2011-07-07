@@ -33,13 +33,7 @@ if(_GIT_EXEC)
 endif()
 
 if(_GIT_VERSION_OK)
-  execute_process(
-    COMMAND "${_GIT_EXEC}" describe --match init --dirty=+ --abbrev=12
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    OUTPUT_VARIABLE rev_info
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
-  )
+  set(rev_info "${REV_INFO}")
   execute_process(
     COMMAND "${_GIT_EXEC}" show -s --format=%ci
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"

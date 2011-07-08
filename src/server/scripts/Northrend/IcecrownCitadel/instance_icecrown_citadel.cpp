@@ -115,6 +115,7 @@ class instance_icecrown_citadel : public InstanceMapScript
                 SindragosaGUID = 0;
                 SpinestalkerGUID = 0;
                 RimefangGUID = 0;
+                uiDreamwalkerCache = 0;
                 TheLichKingGUID = 0;
                 FrostwyrmCount = 0;
                 SpinestalkerTrashCount = 0;
@@ -424,6 +425,12 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case GO_DRINK_ME:
                         PutricideTableGUID = go->GetGUID();
                         break;
+                    case GO_DREAMWALKER_CACHE_10_N:
+                    case GO_DREAMWALKER_CACHE_25_N:
+                    case GO_DREAMWALKER_CACHE_10_H:
+                    case GO_DREAMWALKER_CACHE_25_H:
+                        uiDreamwalkerCache = go->GetGUID();
+                        break;
                     default:
                         break;
                 }
@@ -645,6 +652,9 @@ class instance_icecrown_citadel : public InstanceMapScript
                     case DATA_VALITHRIA_DREAMWALKER:
                         if (state == DONE && sPoolMgr->IsSpawnedObject<Quest>(WeeklyQuestData[8].questId[instance->GetSpawnMode() & 1]))
                             instance->SummonCreature(NPC_VALITHRIA_DREAMWALKER_QUEST, ValithriaSpawnPos);
+
+                        if (state == DONE)
+                            DoRespawnGameObject(uiDreamwalkerCache, 7*DAY);
                         break;
                     case DATA_SINDRAGOSA:
                         HandleGameObject(FrostwingSigilGUID, state != DONE);
@@ -1104,6 +1114,7 @@ class instance_icecrown_citadel : public InstanceMapScript
             uint64 SindragosaGUID;
             uint64 SpinestalkerGUID;
             uint64 RimefangGUID;
+            uint64 uiDreamwalkerCache;
             uint64 TheLichKingGUID;
             uint32 TeamInInstance;
             uint32 BloodQuickeningTimer;

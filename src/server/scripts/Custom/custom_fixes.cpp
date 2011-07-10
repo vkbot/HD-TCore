@@ -2750,6 +2750,35 @@ public:
     }
 };
 
+/*######
+## at_nats_landing
+######*/
+enum
+{
+    QUEST_NATS_BARGAIN = 11209,
+    SPELL_FISH_PASTE   = 42644,
+    NPC_LURKING_SHARK  = 23928
+};
+
+class at_nats_landing : public AreaTriggerScript
+{
+    public:
+        at_nats_landing() : AreaTriggerScript("at_nats_landing") {}
+
+        bool OnTrigger(Player* player, const AreaTriggerEntry* pAt)
+        {
+            if (player->GetQuestStatus(QUEST_NATS_BARGAIN) == QUEST_STATUS_INCOMPLETE && player->HasAura(SPELL_FISH_PASTE))
+            {
+            Creature* pShark = GetClosestCreatureWithEntry(player, NPC_LURKING_SHARK, 20.0f);
+
+            if (!pShark)
+                pShark = player->SummonCreature(NPC_LURKING_SHARK, -4246.243f, -3922.356f, -7.488f, 5.0f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 100000);
+                pShark->AI()->AttackStart(player);
+                return false;
+            }
+            return true;
+        }
+};
 
 void AddSC_custom_fixes()
 {
@@ -2792,4 +2821,5 @@ void AddSC_custom_fixes()
     new mob_ahunite_coldwave();
     new mob_ahunite_frostwind();
     new go_ice_stone_midsummer();
+    new at_nats_landing();
 }

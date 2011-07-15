@@ -741,6 +741,14 @@ void Spell::SpellDamageSchoolDmg(SpellEffIndex effIndex)
                 }
                 break;
             }
+            case SPELLFAMILY_MAGE:
+            {
+                // Deep Freeze damage should only proc on immune targets
+                if(m_spellInfo->Id == 71757)
+                    if(!(unitTarget->IsImmunedToSpellEffect(sSpellMgr->GetSpellInfo(44572), 0)) || unitTarget->GetTypeId() == TYPEID_PLAYER)
+                        return;
+                break;
+            }
         }
 
         if (m_originalCaster && damage > 0 && apply_direct_bonus)

@@ -1877,6 +1877,80 @@ public:
     }
 };
 
+/*#####################
+# npc_destructive_ward
+#######################*/
+
+enum NoPlaceToRun
+{
+    QUEST_NO_PLACE_TO_RUN = 12261,
+    NPC_SMOLDERING_CONSTRUCT = 27362,
+    NPC_CHARGED_WARD = 28820
+};
+
+class npc_destructive_ward : public CreatureScript
+{
+public:
+    npc_destructive_ward() : CreatureScript("npc_destructive_ward") { }
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_destructive_wardAI(creature);
+    }
+
+    struct npc_destructive_wardAI : public ScriptedAI
+    {
+        npc_destructive_wardAI(Creature* c) : ScriptedAI(c) { }
+
+        uint32 uiWaveTimer;
+        uint8 killCounter;
+
+        void Reset()
+        {
+            killCounter = 0;
+            uiWaveTimer = 5000;
+            me->SetReactState(REACT_PASSIVE);
+            me->GetMotionMaster()->MoveIdle();
+        }
+
+        void JustDied(Unit* /*killer*/)
+        {
+            if (Player* player = me->GetOwner()->ToPlayer())
+                player->FailQuest(QUEST_NO_PLACE_TO_RUN);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if(uiWaveTimer <= diff)
+            {
+                if(Creature* summoned = me->SummonCreature(NPC_SMOLDERING_CONSTRUCT, me->GetPositionX()-rand()%15, me->GetPositionY()-rand()%15, me->GetPositionZ()+3, 0.0f, TEMPSUMMON_CORPSE_DESPAWN,0))
+                {
+                    summoned->AI()->AttackStart(me);
+                    summoned->GetMotionMaster()->Clear();
+                    summoned->GetMotionMaster()->MoveChase(me);
+                }
+                uiWaveTimer = urand(10000, 15000);
+            }
+            else
+                uiWaveTimer -= diff;
+        }
+
+        void SummonedCreatureDespawn(Creature* summon)
+        {
+            if (summon->GetEntry() == NPC_SMOLDERING_CONSTRUCT)
+                killCounter++;
+
+            if(killCounter >= 3)
+            {
+                if (Player* player = me->GetOwner()->ToPlayer())
+                    player->KilledMonsterCredit(NPC_CHARGED_WARD,0);
+
+                me->DespawnOrUnsummon(2000);
+            }
+        }
+    };
+};
+
 void AddSC_custom_fixes()
 {
     new go_not_a_bug;
@@ -1906,4 +1980,5 @@ void AddSC_custom_fixes()
     new npc_evergrove_druid();
     new npc_antelarion_gossip();
     new npc_woodlands_walker();
+    new npc_destructive_ward();
 }

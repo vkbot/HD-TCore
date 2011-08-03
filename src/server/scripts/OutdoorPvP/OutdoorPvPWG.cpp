@@ -88,8 +88,8 @@ void _RespawnCreatureIfNeeded(Creature *cr, uint32 entry)
     if (!cr)
         return;
     cr->UpdateEntry(entry); // SetOriginalEntry as used before may lead to crash
-    if (cr->GetAreaId() == 4575)
-        cr->AI()->EnterEvadeMode();
+    //if (cr->GetAreaId() == 4575)
+    //    cr->AI()->EnterEvadeMode();
     if (entry != cr->GetEntry() || !cr->isAlive())
         cr->Respawn(true);
     cr->SetVisible(true);
@@ -464,8 +464,12 @@ bool OutdoorPvPWG::SetupOutdoorPvP()
     return true;
 }
 
-void OutdoorPvPWG::ProcessEvent(GameObject *obj, uint32 eventId)
+void OutdoorPvPWG::ProcessEvent(GameObject *objin, uint32 eventId)
 {
+    GameObject* obj = objin->ToGameObject();
+    if (!obj)
+        return;
+
     if (obj->GetEntry() == 192829) // Titan Relic
     {
         if (obj->GetGOInfo()->goober.eventId == eventId && isWarTime() && MaingateDestroyed)
@@ -936,7 +940,7 @@ void OutdoorPvPWG::RebuildAllBuildings()
         if (itr->second->building && itr->second->building->GetGoType() == GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING)
         {
             UpdateGameObjectInfo(itr->second->building);
-            itr->second->building->ModifyHealth(itr->second->building->GetGOValue()->Building.MaxHealth);
+            itr->second->building->SetDestructibleState(GO_DESTRUCTIBLE_REBUILDING, NULL, true);
             itr->second->health = itr->second->building->GetGOValue()->Building.Health;
             itr->second->damageState = DAMAGE_INTACT;
         }

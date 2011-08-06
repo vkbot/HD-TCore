@@ -1,4 +1,4 @@
--- Logros
+-- == Logros ==
 DELETE FROM `achievement_criteria_data` WHERE criteria_id IN (7323, 7324, 7325, 7177, 7178, 7179);
 INSERT INTO `achievement_criteria_data` VALUES
 -- Drake Voids
@@ -10,4 +10,9 @@ INSERT INTO `achievement_criteria_data` VALUES
 (7178, 11, 0, 0, 'achievement_emerald_drake_rider'),
 (7179, 11, 0, 0, 'achievement_ruby_drake_rider');
 
+-- Delete disables
+DELETE FROM `disables` WHERE sourcetype = 4 AND entry IN(7323, 7324, 7325, 7177, 7178, 7179);
+
+-- == Creature templates ==
+-- Anomalia plana
 UPDATE `creature_template` SET `modelid2` = 0, `ScriptName` = 'mob_planar_anomaly' WHERE `entry` = 30879;

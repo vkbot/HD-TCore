@@ -26,6 +26,10 @@
 2 - Mage-Lord Urom
 3 - Ley-Guardian Eregos */
 
+enum eAchievements
+{
+    ACHIEV_TIMED_START_EVENT = 18153;
+}
 class instance_oculus : public InstanceMapScript
 {
 public:
@@ -102,7 +106,6 @@ public:
             switch(creature->GetEntry())
             {
                 case NPC_DRAKOS:
-                    AchievRunning = false;
                     drakosGUID = creature->GetGUID();
                     break;
                 case NPC_VAROS:
@@ -153,6 +156,7 @@ public:
                     {
                         DoUpdateWorldState(WORLD_STATE_CENTRIFUGE_CONSTRUCT_SHOW, 1);
                         DoUpdateWorldState(WORLD_STATE_CENTRIFUGE_CONSTRUCT_AMOUNT, centrifugueConstructCounter);
+                        DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_TIMED_START_EVENT);
                         OpenCageDoors();
                     }
                     break;
@@ -259,26 +263,6 @@ public:
             OUT_LOAD_INST_DATA_COMPLETE;
         }
 
-        bool AchievRunning;
-        uint32 uiAchievTimer;
-        void Update(uint32 diff)
-        {
-            if (!instance->HavePlayers())
-                return;
-            if (instance->IsHeroic())
-            {
-                if (GetBossState(DATA_DRAKOS_EVENT) == DONE && !AchievRunning)
-                {
-                    uiAchievTimer = diff + 1200000;
-                    AchievRunning = true;
-                }
-
-                //Achievement Make it Count!
-                if (GetBossState(DATA_EREGOS_EVENT) == DONE && diff <= uiAchievTimer)
-                    DoCompleteAchievement(1868);
-            }
-
-        }
         private:
             uint64 drakosGUID;
             uint64 varosGUID;

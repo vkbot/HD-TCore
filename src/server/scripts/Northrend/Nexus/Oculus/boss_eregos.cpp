@@ -110,13 +110,9 @@ enum EmeraldDrake
     SPELL_EMERALD_DREAM_FUNNEL                    = 50344         //(60 yds) - Channeled - Transfers 5% of the caster's max health to a friendly drake every second for 10 seconds as long as the caster channels.
 };
 
-enum EregosAchievements
-{
-    ACHIEV_AMBER_VOID          = 2046,
-    ACHIEV_RUBY_VOID           = 2044,
-    ACHIEV_EMERALD_VOID        = 2045,
-    ACHIEV_EXPERT_RIDER        = 1871
-};
+#define DATA_EMERALD_VOID  0
+#define DATA_RUBY_VOID     1
+#define DATA_AMBER_VOID    2
 
 class boss_eregos : public CreatureScript
 {
@@ -244,9 +240,20 @@ public:
             DoMeleeAttackIfReady();
         }
 
-        bool bRDrake;
-        bool bEDrake;
-        bool bADrake;
+        uint32 GetData(uint32 type)
+        {
+            switch(type)
+            {
+                case DATA_AMBER_VOID:
+                    return bWereRedDrakes ? 0 : 1;
+                case DATA_EMERALD_VOID:
+                    return bWereEmeraldDrakes ? 0 : 1;
+                case DATA_RUBY_VOID:
+                    return bWereAmberDrakes ? 0 : 1;
+            }
+
+            return 0;
+        }
 
         void JustDied(Unit* /*killer*/)
         {
@@ -255,9 +262,9 @@ public:
             //Rewards
 
             //Achievements
-            bRDrake = false;
-            bEDrake = false;
-            bADrake = false;
+            bWereRedDrakes = false;
+            bWereEmeraldDrakes = false;
+            bWereAmberDrakes = false;
 
             if (IsHeroic())
             {
@@ -268,21 +275,13 @@ public:
                     if (Unit* pDrake = itr->getSource()->GetVehicleBase())
                     {
                         if (pDrake->GetEntry() == NPC_AMBER_DRAKE_VEHICLE)
-                            bADrake = true;
+                            bWereAmberDrakes = true;
                         if (pDrake->GetEntry() == NPC_RUBY_DRAKE_VEHICLE)
-                            bRDrake = true;
+                            bWereRedDrakes = true;
                         if(pDrake->GetEntry() == NPC_EMERALD_DRAKE_VEHICLE)
-                            bEDrake = true;
+                            bWereEmeraldDrakes = true;
                     }
                 }
-
-                // Complete achieves
-                if (!bADrake)
-                    pInstance->DoCompleteAchievement(ACHIEV_AMBER_VOID);
-                if (!bRDrake)
-                    pInstance->DoCompleteAchievement(ACHIEV_RUBY_VOID);
-                if (!bEDrake)
-                    pInstance->DoCompleteAchievement(ACHIEV_EMERALD_VOID);
             }
 
             // Loot
@@ -296,6 +295,9 @@ public:
 
     private:
         uint8 phase;
+        bool bWereRedDrakes;
+        bool bWereEmeraldDrakes;
+        bool bWereAmberDrakes;
     };
 };
 
@@ -327,8 +329,122 @@ class spell_eregos_planar_shift : public SpellScriptLoader
         }
 };
 
+class achievement_amber_void : public AchievementCriteriaScript
+{
+    public:
+        achievement_amber_void() : AchievementCriteriaScript("achievement_amber_void") {}
+
+        bool OnCheck(Player* player, Unit* target)
+        {
+            if (!target || !player)
+                return false;
+
+            if (Creature* eregos = target->ToCreature())
+                if (eregos->AI()->GetData(DATA_AMBER_VOID))
+                    return true;
+
+            return false;
+        }
+};
+
+class achievement_amber_drake_rider : public AchievementCriteriaScript
+{
+    public:
+        achievement_amber_drake_rider() : AchievementCriteriaScript("achievement_amber_drake_rider") {}
+
+        bool OnCheck(Player* player, Unit* target)
+        {
+            if (!target || !player)
+                return false;
+
+            if (Unit* drake = player->GetVehicleBase())
+                if (drake->GetEntry() == NPC_AMBER_DRAKE_VEHICLE)
+                    return true;
+
+            return false;
+        }
+};
+
+class achievement_ruby_void : public AchievementCriteriaScript
+{
+    public:
+        achievement_ruby_void() : AchievementCriteriaScript("achievement_ruby_void") {}
+
+        bool OnCheck(Player* player, Unit* target)
+        {
+            if (!target || !player)
+                return false;
+
+            if (Creature* eregos = target->ToCreature())
+                if (eregos->AI()->GetData(DATA_RUBY_VOID))
+                    return true;
+
+            return false;
+        }
+};
+
+class achievement_ruby_drake_rider : public AchievementCriteriaScript
+{
+    public:
+        achievement_ruby_drake_rider() : AchievementCriteriaScript("achievement_ruby_drake_rider") {}
+
+        bool OnCheck(Player* player, Unit* target)
+        {
+            if (!target || !player)
+                return false;
+
+            if (Unit* drake = player->GetVehicleBase())
+                if (drake->GetEntry() == NPC_RUBY_DRAKE_VEHICLE)
+                    return true;
+
+            return false;
+        }
+};
+
+class achievement_emerald_void : public AchievementCriteriaScript
+{
+    public:
+        achievement_emerald_void() : AchievementCriteriaScript("achievement_emerald_void") {}
+
+        bool OnCheck(Player* player, Unit* target)
+        {
+            if (!target || !player)
+                return false;
+
+            if (Creature* eregos = target->ToCreature())
+                if (eregos->AI()->GetData(DATA_EMERALD_VOID))
+                    return true;
+
+            return false;
+        }
+};
+
+class achievement_emerald_drake_rider : public AchievementCriteriaScript
+{
+    public:
+        achievement_emerald_drake_rider() : AchievementCriteriaScript("achievement_emerald_drake_rider") {}
+
+        bool OnCheck(Player* player, Unit* target)
+        {
+            if (!target || !player)
+                return false;
+
+            if (Unit* drake = player->GetVehicleBase())
+                if (drake->GetEntry() == NPC_EMERALD_DRAKE_VEHICLE)
+                    return true;
+
+            return false;
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
     new spell_eregos_planar_shift();
+    new achievement_amber_void();
+    new achievement_ruby_void();
+    new achievement_emerald_void();
+    new achievement_amber_drake_rider();
+    new achievement_ruby_drake_rider();
+    new achievement_emerald_drake_rider();
 }

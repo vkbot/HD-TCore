@@ -44,8 +44,6 @@ enum Spells
     SPELL_PLANAR_ANOMALIES                        = 57959,
     SPELL_PLANAR_SHIFT                            = 51162,
     SPELL_SUMMON_LEY_WHELP                        = 51175,
-    SPELL_SUMMON_PLANAR_ANOMALIES                 = 57963,
-    SPELL_PLANAR_BLAST                            = 57976
 };
 
 enum Npcs
@@ -172,15 +170,6 @@ public:
             summon->GetMotionMaster()->MoveRandom(100.0f);
         }
 
-        void SummonedCreatureDespawn(Creature* summon)
-        {
-            if (summon->GetEntry() != NPC_PLANAR_ANOMALY)
-                return;
-
-            // TO-DO: See why the spell is not casted
-            summon->CastSpell(summon, SPELL_PLANAR_BLAST, true);
-        }
-
         void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/)
         {
             if (!me->GetMap()->IsHeroic())
@@ -299,6 +288,55 @@ public:
         bool bWereEmeraldDrakes;
         bool bWereAmberDrakes;
     };
+};
+
+enum AnomalySpells
+{
+    SPELL_PLANAR_BLAST      = 57976, // Final damage spell
+    SPELL_PLANAR_DISTORTION = 59379, // Periodic damage aura
+    SPELL_PLANAR_SPARK      = 57971, // Visual
+};
+
+class mob_planar_anomaly : public CreatureScript
+{
+public:
+    mob_planar_anomaly() : CreatureScript("mob_planar_anomaly") { }
+
+    struct mob_planar_anomalyAI : public ScriptedAI
+    {
+        mob_planar_anomalyAI(Creature *creature) : ScriptedAI(creature) {}
+
+        uint32 uiBlastTimer;
+
+        void Reset()
+        {
+            uiBlastTimer = 17000;
+            me->SetFlying(true);
+            me->SetSpeed(MOVE_FLIGHT, 2.1f);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
+            me->AddAura(SPELL_PLANAR_DISTORTION, me);
+            me->AddAura(SPELL_PLANAR_SPARK, me);
+            me->DespawnOrUnsummon(18000);
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if(!UpdateVictim())
+                return;
+
+            if(uiBlastTimer && uiBlastTimer <= uiDiff)
+            {
+                DoCastAOE(SPELL_PLANAR_BLAST, true);
+                uiBlastTimer = 0;
+            }
+            else
+                uiBlastTimer -= uiDiff;
+        }
+    };
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new mob_planar_anomalyAI(creature);
+    }
 };
 
 class spell_eregos_planar_shift : public SpellScriptLoader
@@ -440,6 +478,7 @@ class achievement_emerald_drake_rider : public AchievementCriteriaScript
 void AddSC_boss_eregos()
 {
     new boss_eregos();
+    new mob_planar_anomaly();
     new spell_eregos_planar_shift();
     new achievement_amber_void();
     new achievement_ruby_void();

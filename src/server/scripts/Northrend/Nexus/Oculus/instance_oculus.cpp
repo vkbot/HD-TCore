@@ -28,8 +28,9 @@
 
 enum eAchievements
 {
-    ACHIEV_TIMED_START_EVENT = 18153;
-}
+    ACHIEV_TIMED_START_EVENT = 18153,
+};
+
 class instance_oculus : public InstanceMapScript
 {
 public:

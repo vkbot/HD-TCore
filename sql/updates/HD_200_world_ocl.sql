@@ -9,3 +9,5 @@ INSERT INTO `achievement_criteria_data` VALUES
 (7177, 11, 0, 0, 'achievement_amber_drake_rider'),
 (7178, 11, 0, 0, 'achievement_emerald_drake_rider'),
 (7179, 11, 0, 0, 'achievement_ruby_drake_rider');
+
+UPDATE `creature_template` SET `modelid2` = 0, `ScriptName` = 'mob_planar_anomaly' WHERE `entry` = 30879;

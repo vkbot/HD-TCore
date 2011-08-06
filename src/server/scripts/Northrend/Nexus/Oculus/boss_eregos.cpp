@@ -234,11 +234,11 @@ public:
             switch(type)
             {
                 case DATA_AMBER_VOID:
-                    return bWereRedDrakes ? 0 : 1;
+                    return bWereAmberDrakes ? 0 : 1;
                 case DATA_EMERALD_VOID:
                     return bWereEmeraldDrakes ? 0 : 1;
                 case DATA_RUBY_VOID:
-                    return bWereAmberDrakes ? 0 : 1;
+                    return bWereRubyDrakes ? 0 : 1;
             }
 
             return 0;
@@ -251,7 +251,7 @@ public:
             //Rewards
 
             //Achievements
-            bWereRedDrakes = false;
+            bWereRubyDrakes = false;
             bWereEmeraldDrakes = false;
             bWereAmberDrakes = false;
 
@@ -260,15 +260,23 @@ public:
                 Map::PlayerList const &players = pInstance->instance->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
                 {
-                    // Checks
-                    if (Unit* pDrake = itr->getSource()->GetVehicleBase())
+                    // Check every player's drake for void achievements
+                    if (Unit* drake = itr->getSource()->GetVehicleBase())
                     {
-                        if (pDrake->GetEntry() == NPC_AMBER_DRAKE_VEHICLE)
-                            bWereAmberDrakes = true;
-                        if (pDrake->GetEntry() == NPC_RUBY_DRAKE_VEHICLE)
-                            bWereRedDrakes = true;
-                        if(pDrake->GetEntry() == NPC_EMERALD_DRAKE_VEHICLE)
-                            bWereEmeraldDrakes = true;
+                        switch(drake->GetEntry())
+                        {
+                            case NPC_AMBER_DRAKE_VEHICLE:
+                                bWereAmberDrakes = true;
+                                break;
+                            case NPC_RUBY_DRAKE_VEHICLE:
+                                bWereRubyDrakes = true;
+                                break;
+                            case NPC_EMERALD_DRAKE_VEHICLE:
+                                bWereEmeraldDrakes = true;
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             }
@@ -278,7 +286,7 @@ public:
 
     private:
         uint8 phase;
-        bool bWereRedDrakes;
+        bool bWereRubyDrakes;
         bool bWereEmeraldDrakes;
         bool bWereAmberDrakes;
     };

@@ -58,6 +58,7 @@ public:
             centrifugueConstructCounter = 0;
 
             eregosCacheGUID = 0;
+            lightCacheGUID = 0;
 
             azureDragonsList.clear();
             gameObjectList.clear();
@@ -139,6 +140,13 @@ public:
                 case GO_EREGOS_CACHE_N:
                 case GO_EREGOS_CACHE_H:
                     eregosCacheGUID = go->GetGUID();
+                    if (GetBossState(DATA_EREGOS_EVENT) != DONE)
+                        go->SetPhaseMask(2, true);
+                    break;
+                case GO_CACHE_SPOTLIGHT:
+                    lightCacheGUID = go->GetGUID();
+                    if (GetBossState(DATA_EREGOS_EVENT) != DONE)
+                        go->SetPhaseMask(2, true);
                     break;
                 default:
                     break;
@@ -167,7 +175,12 @@ public:
                     break;
                 case DATA_EREGOS_EVENT:
                     if (state == DONE)
-                        DoRespawnGameObject(eregosCacheGUID, 7*DAY);
+                    {
+                        if(GameObject* cache = instance->GetGameObject(eregosCacheGUID))
+                            cache->SetPhaseMask(1, true);
+                        if(GameObject* light = instance->GetGameObject(lightCacheGUID))
+                            light->SetPhaseMask(1, true);
+                    }
                     break;
             }
 
@@ -274,6 +287,7 @@ public:
             uint8 centrifugueConstructCounter;
 
             uint64 eregosCacheGUID;
+            uint64 lightCacheGUID;
 
             std::string str_data;
 

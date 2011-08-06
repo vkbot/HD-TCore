@@ -273,12 +273,6 @@ public:
                 }
             }
 
-            // Loot
-            if (IsHeroic())
-                me->SummonGameObject(GO_CACHE_OF_EREGOS_H, 1015.06f, 1051.09f, 605.619f, 0.017452f, 0, 0, 0, 0, TEMPSUMMON_MANUAL_DESPAWN);
-            else
-                me->SummonGameObject(GO_CACHE_OF_EREGOS_N, 1015.06f, 1051.09f, 605.619f, 0.017452f, 0, 0, 0, 0, TEMPSUMMON_MANUAL_DESPAWN);
-
             _JustDied();
         }
 

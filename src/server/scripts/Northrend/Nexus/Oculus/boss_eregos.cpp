@@ -31,9 +31,13 @@ enum Events
 
 enum Says
 {
-    SAY_AGGRO = 0,
-    SAY_ENRAGE = 1,
-    SAY_DEATH = 2
+    SAY_SPAWN  = -1578022,
+    SAY_AGGRO  = -1578023,
+    SAY_ENRAGE = -1578024,
+    SAY_KILL_1 = -1578025,
+    SAY_KILL_2 = -1578026,
+    SAY_KILL_3 = -1578027,
+    SAY_DEATH  = -1578028,
 };
 
 enum Spells
@@ -137,6 +141,7 @@ public:
 
             phase = PHASE_NORMAL;
 
+            me->SetSpeed(MOVE_FLIGHT, 2.8f);
             DoAction(ACTION_SET_NORMAL_EVENTS);
         }
 
@@ -144,9 +149,7 @@ public:
         {
             _EnterCombat();
 
-            Talk(SAY_AGGRO);
-
-            me->SetSpeed(MOVE_FLIGHT, 2.8f);
+            DoScriptText(SAY_AGGRO, me);
         }
 
         void DoAction(const int32 action)
@@ -200,7 +203,7 @@ public:
                         events.ScheduleEvent(EVENT_ARCANE_VOLLEY, urand(10, 25) * IN_MILLISECONDS, 0, PHASE_NORMAL);
                         break;
                     case EVENT_ENRAGED_ASSAULT:
-                        Talk(SAY_ENRAGE);
+                        DoScriptText(SAY_ENRAGE, me);
                         DoCast(SPELL_ENRAGED_ASSAULT);
                         events.ScheduleEvent(EVENT_ENRAGED_ASSAULT, urand(35, 50) * IN_MILLISECONDS, 0, PHASE_NORMAL);
                         break;
@@ -230,9 +233,14 @@ public:
             return 0;
         }
 
+        void KilledUnit(Unit* /*victim*/)
+        {
+            DoScriptText(RAND(SAY_KILL_1, SAY_KILL_2, SAY_KILL_3), me);
+        }
+
         void JustDied(Unit* /*killer*/)
         {
-            Talk(SAY_DEATH);
+            DoScriptText(SAY_DEATH, me);
 
             //Achievements
             bWereRubyDrakes = false;

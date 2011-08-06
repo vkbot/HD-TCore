@@ -166,12 +166,11 @@ public:
             if (!me->GetMap()->IsHeroic())
                 return;
 
-            if ( (me->GetHealthPct() < 60.0f  && me->GetHealthPct() > 20.0f && phase < PHASE_FIRST_PLANAR)
-                || (me->GetHealthPct() < 20.0f && phase < PHASE_SECOND_PLANAR) )
+            if ((me->HealthBelowPct(60) && me->HealthAbovePct(20) && phase < PHASE_FIRST_PLANAR) ||
+                (me->HealthBelowPct(20) && phase < PHASE_SECOND_PLANAR))
             {
                 events.Reset();
-                phase = (me->GetHealthPct() < 60.0f  && me->GetHealthPct() > 20.0f) ? PHASE_FIRST_PLANAR : PHASE_SECOND_PLANAR;
-
+                phase = (me->HealthBelowPct(60)  && me->HealthAbovePct(20)) ? PHASE_FIRST_PLANAR : PHASE_SECOND_PLANAR;
                 // Planar anomalies are summoned on SpellScript
                 DoCast(SPELL_PLANAR_SHIFT);
             }
@@ -297,7 +296,7 @@ public:
 
         void Reset()
         {
-            uiBlastTimer = 17000;
+            uiBlastTimer = 16000;
             me->SetFlying(true);
             me->SetSpeed(MOVE_FLIGHT, 2.1f);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
@@ -338,16 +337,15 @@ class spell_eregos_planar_shift : public SpellScriptLoader
             void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
                 if (Unit* caster = GetCaster())
-                {
-                    if(InstanceScript* instance = caster->GetInstanceScript())
-                    {
-                        Map::PlayerList const &players = instance->instance->GetPlayers();
-                        for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                            if (Player* player = itr->getSource())
-                                if(Creature* anomaly = player->SummonCreature(NPC_PLANAR_ANOMALY, player->GetPositionX() + urand(5, 10), player->GetPositionY() + urand(5, 10), player->GetPositionZ()))
-                                    anomaly->GetMotionMaster()->MoveChase(player);
-                    }
-                }
+                    if (Creature* creatureCaster = caster->ToCreature())
+                        if(InstanceScript* instance = caster->GetInstanceScript())
+                        {
+                            Map::PlayerList const &players = instance->instance->GetPlayers();
+                            for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                                if (Player* player = itr->getSource())
+                                    if(Creature* anomaly = player->SummonCreature(NPC_PLANAR_ANOMALY, player->GetPositionX() + urand(5, 10), player->GetPositionY() + urand(5, 10), player->GetPositionZ()))
+                                        anomaly->GetMotionMaster()->MoveChase(player);
+                        }
             }
 
             void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)

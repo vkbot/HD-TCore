@@ -78,10 +78,7 @@ public:
                 break;
             case GOSSIP_ACTION_INFO_DEF + 2:
             {
-                ItemPosCountVec dest;
-                uint8 msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, ITEM_EMERALD_ESSENCE, 1);
-                if (msg == EQUIP_ERR_OK)
-                    player->StoreNewItem(dest, ITEM_EMERALD_ESSENCE, true);
+                player->AddItem(ITEM_EMERALD_ESSENCE, 1);
                 player->CLOSE_GOSSIP_MENU();
                 break;
             }
@@ -108,10 +105,7 @@ public:
                 break;
             case GOSSIP_ACTION_INFO_DEF + 2:
             {
-                ItemPosCountVec dest;
-                uint8 msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, ITEM_RUBY_ESSENCE, 1);
-                if (msg == EQUIP_ERR_OK)
-                    player->StoreNewItem(dest, ITEM_RUBY_ESSENCE, true);
+                player->AddItem(ITEM_RUBY_ESSENCE, 1);
                 player->CLOSE_GOSSIP_MENU();
                 break;
             }
@@ -138,10 +132,7 @@ public:
                 break;
             case GOSSIP_ACTION_INFO_DEF + 2:
             {
-                ItemPosCountVec dest;
-                uint8 msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, ITEM_AMBER_ESSENCE, 1);
-                if (msg == EQUIP_ERR_OK)
-                    player->StoreNewItem(dest, ITEM_AMBER_ESSENCE, true);
+                player->AddItem(ITEM_AMBER_ESSENCE, 1);
                 player->CLOSE_GOSSIP_MENU();
                 break;
             }

@@ -115,12 +115,12 @@ public:
                     break;
                 case NPC_UROM:
                     creature->SetReactState(REACT_PASSIVE);
-                    creature->SetFlag(UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                    creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                     uromGUID = creature->GetGUID();
                     break;
                 case NPC_EREGOS:
                     creature->SetReactState(REACT_PASSIVE);
-                    creature->SetFlag(UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                    creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                     eregosGUID = creature->GetGUID();
                     break;
                 case NPC_CENTRIFUGE_CONSTRUCT:
@@ -180,7 +180,7 @@ public:
                         if(Creature* urom = instance->GetCreature(uromGUID))
                         {
                             urom->SetReactState(REACT_AGGRESSIVE);
-                            urom->RemoveFlag(UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                            urom->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                             urom->RemoveAllAuras();
                         }
                     }
@@ -191,7 +191,7 @@ public:
                         if(Creature* eregos = instance->GetCreature(eregosGUID))
                         {
                             eregos->SetReactState(REACT_AGGRESSIVE);
-                            eregos->RemoveFlag(UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                            eregos->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                         }
                     }
                     break;

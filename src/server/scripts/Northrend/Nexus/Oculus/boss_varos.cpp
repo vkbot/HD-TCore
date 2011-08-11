@@ -38,6 +38,7 @@ enum Spells
     SPELL_CALL_AMPLIFY_MAGIC                      = 51054,
 
     SPELL_ICE_BEAM                                = 49549,
+    SPELL_ARCANE_BEAM_VISUAL                      = 51024,
     SPELL_ARCANE_BEAM_PERIODIC                    = 51019,
     SPELL_SUMMON_ARCANE_BEAM                      = 51017
 };
@@ -176,10 +177,7 @@ class npc_azure_ring_captain : public CreatureScript
             void SpellHitTarget(Unit* target, SpellInfo const* spell)
             {
                 if (spell->Id == SPELL_ICE_BEAM)
-                {
-                    target->CastSpell(target, SPELL_SUMMON_ARCANE_BEAM, true);
-                    me->DespawnOrUnsummon();
-                }
+                    DoAction(ACTION_ARCANE_BEAM);
             }
 
             void UpdateAI(const uint32 /*diff*/)
@@ -215,12 +213,32 @@ class npc_azure_ring_captain : public CreatureScript
                                 {
                                     me->SetReactState(REACT_PASSIVE);
                                     me->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
-                                    me->GetMotionMaster()->MovePoint(ACTION_CALL_DRAGON_EVENT, victim->GetPositionX(), victim->GetPositionY(), victim->GetPositionZ() + 20.0f);
+                                    me->GetMotionMaster()->MovePoint(ACTION_CALL_DRAGON_EVENT, victim->GetPositionX(), victim->GetPositionY(), victim->GetPositionZ() + 12.0f);
                                     targetGUID = victim->GetGUID();
                                 }
                             }
                         }
                         break;
+                   case ACTION_ARCANE_BEAM:
+                       if (instance)
+                       {
+                           if (Unit* victim = me->GetPlayer(*me, targetGUID))
+                           {
+                                if(Creature* beamTrigger = me->SummonCreature(28239, victim->GetPositionX() + urand(0,5), victim->GetPositionY() + urand(0,5), victim->GetPositionZ()))
+                                {
+                                    beamTrigger->RemoveAllAuras();
+                                    beamTrigger->setFaction(me->getFaction());
+                                    beamTrigger->AddAura(SPELL_ARCANE_BEAM_PERIODIC, beamTrigger);
+                                    beamTrigger->SetSpeed(MOVE_RUN, 0.95f, true);
+                                    me->CastSpell(beamTrigger, SPELL_ARCANE_BEAM_VISUAL, true);
+                                    beamTrigger->Attack(victim, false);
+                                    beamTrigger->GetMotionMaster()->MoveChase(victim, 1.7f);
+                                    uint32 timer = urand(15000, 20000);
+                                    beamTrigger->DespawnOrUnsummon(timer);
+                                    me->DespawnOrUnsummon(timer+1000);
+                                }
+                           }
+                       }
                 }
            }
 

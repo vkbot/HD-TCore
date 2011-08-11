@@ -14,15 +14,26 @@ INSERT INTO `achievement_criteria_data` VALUES
 DELETE FROM `disables` WHERE sourcetype = 4 AND entry IN(7323, 7324, 7325, 7177, 7178, 7179);
 
 -- == Creature ==
--- Anomalia plana
-UPDATE `creature_template` SET `modelid2` = 0, `ScriptName` = 'mob_planar_anomaly' WHERE `entry` = 30879;
 
 -- Scripts de mobs de "tierra"
 UPDATE `creature_template` SET `ScriptName` = 'npc_centrifuge_construct' WHERE `entry` = 27641;
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ringlord_conjurer' WHERE `entry` = 27640;
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ringlord_sorceress' WHERE `entry` = 27639;
 
--- Textos de Eregos
+-- VAROS --
+-- Haz arcano
+-- Spell visual
+DELETE FROM `conditions` WHERE SourceTypeOrReferenceId = 13 AND SourceEntry = 51024;
+INSERT INTO `conditions` VALUES
+(13, 0, 51024, 0, 18, 1, 28239, 0, 0, '', NULL);
+UPDATE `creature_template` SET `modelid2` = 11686, `faction_A` = 35, `faction_H` = 35 WHERE `entry` IN (28239, 31628);
+
+-- EREGOS --
+
+-- Anomalia plana
+UPDATE `creature_template` SET `modelid2` = 0, `ScriptName` = 'mob_planar_anomaly' WHERE `entry` = 30879;
+
+-- Textos
 DELETE FROM `creature_text` WHERE entry = 27656;
 DELETE FROM script_texts WHERE npc_entry = 27656;
 INSERT INTO script_texts (npc_entry, entry, content_default, content_loc6, content_loc7, sound, TYPE) VALUES

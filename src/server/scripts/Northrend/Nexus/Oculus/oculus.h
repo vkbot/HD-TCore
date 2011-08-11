@@ -61,7 +61,8 @@ enum SpellEvents
 
 enum CreatureActions
 {
-    ACTION_CALL_DRAGON_EVENT = 1
+    ACTION_CALL_DRAGON_EVENT = 1,
+	ACTION_ARCANE_BEAM,
 };
 
 enum OculusWorldStates

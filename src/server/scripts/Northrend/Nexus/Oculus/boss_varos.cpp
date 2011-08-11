@@ -84,6 +84,9 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
+            if(AttackersAreMounted())
+                EnterEvadeMode();
+
             _EnterCombat();
 
             Talk(SAY_AGGRO);
@@ -99,6 +102,12 @@ public:
             //Return since we have no target
             if (!UpdateVictim())
                 return;
+
+            if(AttackersAreMounted())
+            {
+                EnterEvadeMode();
+                return;
+            }
 
             events.Update(diff);
 
@@ -148,6 +157,19 @@ public:
 
             Talk(SAY_DEATH);
         }
+
+        bool AttackersAreMounted()
+        {
+           std::list<HostileReference*>::const_iterator i = me->getThreatManager().getThreatList().begin();
+            for (; i != me->getThreatManager().getThreatList().end(); ++i)
+            {
+                Unit* target = (*i)->getTarget();
+                if(Creature* drake = target->GetVehicleCreatureBase())
+                    return true;
+            }
+            return false;
+        }
+
     private:
         bool firstCoreEnergize;
         float coreEnergizeOrientation;

@@ -129,6 +129,12 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
+            if(AttackersAreMounted())
+            {
+                EnterEvadeMode();
+                return;
+            }
+
             _EnterCombat();
 
             SetGroups();
@@ -225,7 +231,16 @@ public:
             if (!UpdateVictim())
                 return;
 
+            if(AttackersAreMounted())
+            {
+                EnterEvadeMode();
+                return;
+            }
+
             if (!instance || instance->GetData(DATA_UROM_PLATAFORM) < 2)
+                return;
+
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             if (teleportTimer <= uiDiff)
@@ -272,6 +287,7 @@ public:
                 {
                     DoCastVictim(SPELL_FROSTBOMB);
                     frostBombTimer = urand(5000, 8000);
+                    return;
                 } else frostBombTimer -= uiDiff;
 
                 if (timeBombTimer <= uiDiff)
@@ -280,6 +296,7 @@ public:
                         DoCast(pUnit, SPELL_TIME_BOMB);
 
                     timeBombTimer = urand(20000, 25000);
+                    return;
                 } else timeBombTimer -= uiDiff;
             }
 
@@ -321,6 +338,18 @@ public:
                 default:
                     break;
             }
+        }
+
+        bool AttackersAreMounted()
+        {
+           std::list<HostileReference*>::const_iterator i = me->getThreatManager().getThreatList().begin();
+            for (; i != me->getThreatManager().getThreatList().end(); ++i)
+            {
+                Unit* target = (*i)->getTarget();
+                if(Creature* drake = target->GetVehicleCreatureBase())
+                    return true;
+            }
+            return false;
         }
         private:
             float x, y;

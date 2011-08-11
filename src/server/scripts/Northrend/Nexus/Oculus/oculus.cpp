@@ -165,7 +165,222 @@ public:
 
 };
 
+/*
+Trash mobs before Drakos are scripted here because
+we need to check if attackers are mounted, if they
+do, mobs will enter in evade mode.
+*/
+enum trashSpells
+{
+    // Centrifuge Constructs
+    SPELL_EMPOWERING_BLOWS   = 50044,
+    H_SPELL_EMPOWERING_BLOWS = 59213,
+
+    // Ring-Lord Conjurer
+    SPELL_CHARGED_SKIN       = 50717,
+    H_SPELL_CHARGED_SKIN     = 59276,
+
+    // Ring-Lord Sorceress
+    SPELL_BLIZZARD           = 50175,
+    H_SPELL_BLIZZARD         = 59278,
+    SPELL_FLAMESTRIKE        = 16102,
+    H_SPELL_FLAMESTRIKE      = 61402,
+};
+
+class npc_centrifuge_construct : public CreatureScript
+{
+public:
+    npc_centrifuge_construct() : CreatureScript("npc_centrifuge_construct") { }
+
+    struct npc_centrifuge_constructAI : public ScriptedAI
+    {
+        npc_centrifuge_constructAI(Creature *creature) : ScriptedAI(creature) {}
+
+
+        void Reset() {}
+
+        void EnterCombat(Unit* who)
+        {
+            if(AttackersAreMounted())
+                EnterEvadeMode();
+
+            DoCast(IsHeroic() ? H_SPELL_EMPOWERING_BLOWS : SPELL_EMPOWERING_BLOWS);
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if(!UpdateVictim())
+                return;
+
+            if(AttackersAreMounted())
+            {
+                EnterEvadeMode();
+                return;
+            }
+
+            DoMeleeAttackIfReady();
+        }
+
+        bool AttackersAreMounted()
+        {
+           std::list<HostileReference*>::const_iterator i = me->getThreatManager().getThreatList().begin();
+            for (; i != me->getThreatManager().getThreatList().end(); ++i)
+            {
+                Unit* target = (*i)->getTarget();
+                if(Creature* drake = target->GetVehicleCreatureBase())
+                    return true;
+            }
+            return false;
+        }
+    };
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_centrifuge_constructAI(creature);
+    }
+};
+
+class npc_ringlord_conjurer : public CreatureScript
+{
+public:
+    npc_ringlord_conjurer() : CreatureScript("npc_ringlord_conjurer") { }
+
+    struct npc_ringlord_conjurerAI : public ScriptedAI
+    {
+        npc_ringlord_conjurerAI(Creature *creature) : ScriptedAI(creature) {}
+
+
+        void Reset() {}
+
+        void EnterCombat(Unit* who)
+        {
+            if(AttackersAreMounted())
+                EnterEvadeMode();
+
+            DoCast(IsHeroic() ? H_SPELL_CHARGED_SKIN : SPELL_CHARGED_SKIN);
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if(!UpdateVictim())
+                return;
+
+            if(AttackersAreMounted())
+            {
+                EnterEvadeMode();
+                return;
+            }
+
+            if(me->HealthBelowPct(15))
+                me->DoFleeToGetAssistance();
+
+            if(!(me->HasAura(IsHeroic() ? H_SPELL_CHARGED_SKIN : SPELL_CHARGED_SKIN)))
+                DoCast(IsHeroic() ? H_SPELL_CHARGED_SKIN : SPELL_CHARGED_SKIN);
+
+            DoMeleeAttackIfReady();
+        }
+
+        bool AttackersAreMounted()
+        {
+           std::list<HostileReference*>::const_iterator i = me->getThreatManager().getThreatList().begin();
+            for (; i != me->getThreatManager().getThreatList().end(); ++i)
+            {
+                Unit* target = (*i)->getTarget();
+                if(Creature* drake = target->GetVehicleCreatureBase())
+                    return true;
+            }
+            return false;
+        }
+    };
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_ringlord_conjurerAI(creature);
+    }
+};
+
+class npc_ringlord_sorceress : public CreatureScript
+{
+public:
+    npc_ringlord_sorceress() : CreatureScript("npc_ringlord_sorceress") { }
+
+    struct npc_ringlord_sorceressAI : public ScriptedAI
+    {
+        npc_ringlord_sorceressAI(Creature *creature) : ScriptedAI(creature) {}
+
+
+        bool chasing;
+        void Reset() {}
+
+        void EnterCombat(Unit* who)
+        {
+            if(AttackersAreMounted())
+                EnterEvadeMode();
+
+            ChaseVictim(false);
+        }
+
+        void UpdateAI(const uint32 uiDiff)
+        {
+            if(!UpdateVictim())
+                return;
+
+            if(AttackersAreMounted())
+            {
+                EnterEvadeMode();
+                return;
+            }
+
+            if(me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+            if(((double) me->GetPower(POWER_MANA)/(double) me->GetMaxPower(POWER_MANA))*100 <= 5) // Mana below 5
+            {
+                if(!chasing)
+                    ChaseVictim(true);
+                DoMeleeAttackIfReady();
+            }
+            else
+            {
+                if(chasing)
+                    ChaseVictim(false);
+
+                if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
+                    DoCast(target, RAND(IsHeroic() ? H_SPELL_BLIZZARD : SPELL_BLIZZARD, IsHeroic() ? H_SPELL_FLAMESTRIKE : SPELL_FLAMESTRIKE));
+            }
+
+        }
+
+        void ChaseVictim(bool on)
+        {
+            if (on)
+                me->GetMotionMaster()->MoveChase(me->getVictim());
+            else
+                me->GetMotionMaster()->MoveIdle();
+
+            chasing = on;
+
+        }
+        bool AttackersAreMounted()
+        {
+           std::list<HostileReference*>::const_iterator i = me->getThreatManager().getThreatList().begin();
+            for (; i != me->getThreatManager().getThreatList().end(); ++i)
+            {
+                Unit* target = (*i)->getTarget();
+                if(Creature* drake = target->GetVehicleCreatureBase())
+                    return true;
+            }
+            return false;
+        }
+    };
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_ringlord_sorceressAI(creature);
+    }
+};
+
 void AddSC_oculus()
 {
     new npc_oculus_drake();
+    new npc_centrifuge_construct();
+    new npc_ringlord_conjurer();
+    new npc_ringlord_sorceress();
 }

@@ -17,6 +17,11 @@ DELETE FROM `disables` WHERE sourcetype = 4 AND entry IN(7323, 7324, 7325, 7177,
 -- Anomalia plana
 UPDATE `creature_template` SET `modelid2` = 0, `ScriptName` = 'mob_planar_anomaly' WHERE `entry` = 30879;
 
+-- Scripts de mobs de "tierra"
+UPDATE `creature_template` SET `ScriptName` = 'npc_centrifuge_construct' WHERE `entry` = 27641;
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ringlord_conjurer' WHERE `entry` = 27640;
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ringlord_sorceress' WHERE `entry` = 27639;
+
 -- Textos de Eregos
 DELETE FROM `creature_text` WHERE entry = 27656;
 DELETE FROM script_texts WHERE npc_entry = 27656;

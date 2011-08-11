@@ -45,11 +45,6 @@ enum Yells
     SAY_STOMP_3                                   = -1578011
 };
 
-enum DrakosAchievement
-{
-    ACHIEV_TIMED_START_EVENT                      = 18153,
-};
-
 enum DrakosEvents
 {
     EVENT_MAGIC_PULL = 1,
@@ -137,9 +132,6 @@ public:
             _JustDied();
 
             DoScriptText(SAY_DEATH, me);
-
-            // start achievement timer (kill Eregos within 20 min)
-            instance->DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_TIMED_START_EVENT);
         }
 
         void KilledUnit(Unit* /*victim*/)

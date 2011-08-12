@@ -562,6 +562,66 @@ class spell_oculus_stop_time : public SpellScriptLoader
         }
 };
 
+class spell_oculus_temporal_rift : public SpellScriptLoader
+{
+    public:
+        spell_oculus_temporal_rift() : SpellScriptLoader("spell_oculus_temporal_rift") { }
+
+        class spell_oculus_temporal_riftAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_oculus_temporal_riftAuraScript);
+
+            uint32 previousHealth;
+            uint32 acumulatedDamage;
+
+            bool Load()
+            {
+                acumulatedDamage = 0;
+                previousHealth = 0;
+                return true;
+            }
+
+            void HandleEffectPeriodic(AuraEffect const* /*aurEff*/)
+            {
+                uint32 charges = 0;
+                uint32 damageTaken = previousHealth - GetTarget()->GetHealth() + acumulatedDamage;
+
+                if ((double) damageTaken / 15000 >= 1)
+                {
+                    charges = (uint32) ((double) damageTaken / 15000);
+                    acumulatedDamage = damageTaken % 15000;
+                }
+
+                if (charges > 0)
+                {
+                    for(uint8 i = 0; i<charges; i++)
+                        GetCaster()->CastSpell(GetTarget(), SPELL_SHOCK_CHARGE, true);
+                    previousHealth = GetTarget()->GetHealth();
+                    charges = 0;
+                }
+            }
+
+            void HandleOnEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if(!GetTarget())
+                    return;
+
+                previousHealth = GetTarget()->GetHealth();
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_oculus_temporal_riftAuraScript::HandleEffectPeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+                OnEffectApply += AuraEffectApplyFn(spell_oculus_temporal_riftAuraScript::HandleOnEffectApply, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_oculus_temporal_riftAuraScript();
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
@@ -576,4 +636,5 @@ void AddSC_boss_eregos()
     // Amber Drake spells
     new spell_oculus_shock_lance();
     new spell_oculus_stop_time();
+    new spell_oculus_temporal_rift();
 }

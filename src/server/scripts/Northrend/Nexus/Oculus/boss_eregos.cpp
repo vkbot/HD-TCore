@@ -681,6 +681,38 @@ class spell_oculus_dream_funnel : public SpellScriptLoader
         }
 };
 
+class spell_oculus_evasive_charges : public SpellScriptLoader
+{
+    public:
+        spell_oculus_evasive_charges() : SpellScriptLoader("spell_oculus_evasive_charges") { }
+
+        class spell_oculus_evasive_chargesAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_oculus_evasive_chargesAuraScript);
+
+            void HandleOnEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                GetCaster()->ModifyAuraState(AURA_STATE_UNKNOWN22, true);
+            }
+
+            void HandleOnEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                GetCaster()->ModifyAuraState(AURA_STATE_UNKNOWN22, false);
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_oculus_evasive_chargesAuraScript::HandleOnEffectApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+                OnEffectRemove += AuraEffectRemoveFn(spell_oculus_evasive_chargesAuraScript::HandleOnEffectRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_oculus_evasive_chargesAuraScript();
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
@@ -699,4 +731,6 @@ void AddSC_boss_eregos()
     // Emerald Drake spells
     new spell_oculus_touch_nightmare();
     new spell_oculus_dream_funnel();
+    // Ruby Drake Spells
+    new spell_oculus_evasive_charges();
 }

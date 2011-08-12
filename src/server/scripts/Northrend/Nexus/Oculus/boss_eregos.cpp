@@ -652,6 +652,35 @@ class spell_oculus_touch_nightmare : public SpellScriptLoader
         }
 };
 
+class spell_oculus_dream_funnel : public SpellScriptLoader
+{
+    public:
+        spell_oculus_dream_funnel() : SpellScriptLoader("spell_oculus_dream_funnel") { }
+
+        class spell_oculus_dream_funnelAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_oculus_dream_funnelAuraScript);
+
+            void HandleEffectCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+            {
+                // The ammount will be a 5% of the max healt, both for damage and heal
+                amount = (double) (GetCaster()->GetMaxHealth()) * 0.05;
+                canBeRecalculated = false;
+            }
+
+            void Register()
+            {
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_oculus_dream_funnelAuraScript::HandleEffectCalcAmount, EFFECT_0, SPELL_AURA_PERIODIC_HEAL);
+                DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_oculus_dream_funnelAuraScript::HandleEffectCalcAmount, EFFECT_2, SPELL_AURA_PERIODIC_DAMAGE);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_oculus_dream_funnelAuraScript();
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
@@ -669,4 +698,5 @@ void AddSC_boss_eregos()
     new spell_oculus_temporal_rift();
     // Emerald Drake spells
     new spell_oculus_touch_nightmare();
+    new spell_oculus_dream_funnel();
 }

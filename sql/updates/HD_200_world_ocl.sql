@@ -51,6 +51,7 @@ UPDATE `gameobject` SET `spawntimesecs` = 608400 WHERE `id` IN (191349, 193603);
 UPDATE `gameobject` SET `spawntimesecs` = 608400 WHERE `id` = 191351;
 
 -- == Spells de los dragones ==
-DELETE FROM `spell_script_names` WHERE spell_id IN (49840);
+DELETE FROM `spell_script_names` WHERE spell_id IN (49840, 49838);
 INSERT INTO `spell_script_names` VALUES
-(49840, 'spell_oculus_shock_lance');
+(49840, 'spell_oculus_shock_lance'),
+(49838, 'spell_oculus_stop_time');

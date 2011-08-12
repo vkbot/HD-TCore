@@ -499,12 +499,16 @@ class spell_oculus_shock_lance : public SpellScriptLoader
             {
                 // Modify the damage acording to the number of charges
                 uint32 damage = GetHitDamage();
-                uint8 charge_numer = 0;
+                uint32 damageFromCharges = 0;
 
                 if(Aura* shockCharges = GetTargetUnit()->GetAura(SPELL_SHOCK_CHARGE, GetCaster()->GetGUID()))
-                    charge_numer = shockCharges->GetStackAmount();
+                {
+                    uint32 baseDamage = shockCharges->GetSpellInfo()->Effects[0].BasePoints;
+                    uint32 chargeNumber = shockCharges->GetStackAmount();
+                    damageFromCharges = baseDamage*chargeNumber;
+                }
 
-                damage += charge_numer*6525;
+                damage += damageFromCharges;
                 SetHitDamage(damage);
 
             }
@@ -528,6 +532,36 @@ class spell_oculus_shock_lance : public SpellScriptLoader
         }
 };
 
+class spell_oculus_stop_time : public SpellScriptLoader
+{
+    public:
+        spell_oculus_stop_time() : SpellScriptLoader("spell_oculus_stop_time") { }
+
+        class spell_oculus_stop_timeAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_oculus_stop_timeAuraScript);
+
+            void HandleOnEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if(!GetTarget())
+                    return;
+
+                for(uint8 i = 0; i<5; i++)
+                    GetCaster()->CastSpell(GetTarget(), SPELL_SHOCK_CHARGE, true);
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_oculus_stop_timeAuraScript::HandleOnEffectApply, EFFECT_0, SPELL_AURA_MOD_STUN, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_oculus_stop_timeAuraScript();
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
@@ -539,5 +573,7 @@ void AddSC_boss_eregos()
     new achievement_amber_drake_rider();
     new achievement_ruby_drake_rider();
     new achievement_emerald_drake_rider();
+    // Amber Drake spells
     new spell_oculus_shock_lance();
+    new spell_oculus_stop_time();
 }

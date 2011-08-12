@@ -622,6 +622,36 @@ class spell_oculus_temporal_rift : public SpellScriptLoader
         }
 };
 
+class spell_oculus_touch_nightmare : public SpellScriptLoader
+{
+    public:
+        spell_oculus_touch_nightmare() : SpellScriptLoader("spell_oculus_touch_nightmare") {}
+
+        class spell_oculus_touch_nightmareSpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_oculus_touch_nightmareSpellScript)
+
+            void HandleDamage(SpellEffIndex /*effIndex*/)
+            {
+                uint32 damage = 0;
+
+                damage = (double) (GetCaster()->GetMaxHealth()) * 0.30;
+
+                SetHitDamage(damage);
+            }
+
+            void Register()
+            {
+                OnEffect += SpellEffectFn(spell_oculus_touch_nightmareSpellScript::HandleDamage, EFFECT_2, SPELL_EFFECT_SCHOOL_DAMAGE);
+            }
+        };
+
+        SpellScript *GetSpellScript() const
+        {
+            return new spell_oculus_touch_nightmareSpellScript();
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
@@ -637,4 +667,6 @@ void AddSC_boss_eregos()
     new spell_oculus_shock_lance();
     new spell_oculus_stop_time();
     new spell_oculus_temporal_rift();
+    // Emerald Drake spells
+    new spell_oculus_touch_nightmare();
 }

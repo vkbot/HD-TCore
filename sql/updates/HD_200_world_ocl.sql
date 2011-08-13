@@ -15,6 +15,9 @@ DELETE FROM `disables` WHERE sourcetype = 4 AND entry IN(7323, 7324, 7325, 7177,
 
 -- == Creature ==
 
+-- Velocidades de los dragones
+UPDATE `creature_template` SET `speed_walk` = 1, `speed_run` = 1 WHERE `entry` IN (27755, 27756, 27692);
+
 -- Scripts de mobs de "tierra"
 UPDATE `creature_template` SET `ScriptName` = 'npc_centrifuge_construct' WHERE `entry` = 27641;
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ringlord_conjurer' WHERE `entry` = 27640;
@@ -51,11 +54,12 @@ UPDATE `gameobject` SET `spawntimesecs` = 608400 WHERE `id` IN (191349, 193603);
 UPDATE `gameobject` SET `spawntimesecs` = 608400 WHERE `id` = 191351;
 
 -- == Spells de los dragones ==
-DELETE FROM `spell_script_names` WHERE spell_id IN (49840, 49838, 49592, 50341, 50344, 50241);
+DELETE FROM `spell_script_names` WHERE spell_id IN (49840, 49838, 49592, 50341, 50344, 50241, 50325);
 INSERT INTO `spell_script_names` VALUES
 (49840, 'spell_oculus_shock_lance'),
 (49838, 'spell_oculus_stop_time'),
 (49592, 'spell_oculus_temporal_rift'),
 (50341,'spell_oculus_touch_nightmare'),
 (50344,'spell_oculus_dream_funnel'),
-(50241, 'spell_oculus_evasive_charges');
+(50241, 'spell_oculus_evasive_charges'),
+(50325, 'spell_oculus_soar');

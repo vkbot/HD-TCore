@@ -81,7 +81,8 @@ enum RubyDrake
     SPELL_RUBY_EVASIVE_MANEUVERS                  = 50240,          //Instant - 5 sec. cooldown - Allows your drake to dodge all incoming attacks and spells. Requires Evasive Charges to use. Each attack or spell dodged while this ability is active burns one Evasive Charge. Lasts 30 sec. or until all charges are exhausted.
     //you do not have acces to until you kill Mage-Lord Urom
     SPELL_RUBY_MARTYR                             = 50253,          //Instant - 10 sec. cooldown - Redirect all harmful spells cast at friendly drakes to yourself for 10 sec.
-    SPELL_DRAKE_FLAG_VISUAl                       = 53797,
+    SPELL_DRAKE_FLAG_VISUAL                       = 53797,
+    SPELL_SOAR_BUFF                               = 50024,
 };
 /*Amber Drake,
 (npc 27755)  (item 37859)
@@ -713,6 +714,54 @@ class spell_oculus_evasive_charges : public SpellScriptLoader
         }
 };
 
+class spell_oculus_soar : public SpellScriptLoader
+{
+    public:
+        spell_oculus_soar() : SpellScriptLoader("spell_oculus_soar") { }
+
+        class spell_oculus_soarAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_oculus_soarAuraScript);
+
+
+            void HandleEffectPeriodic(AuraEffect const* /*aurEff*/)
+            {
+                if(!GetCaster()->getAttackers().empty())
+                {
+                    if(GetCaster()->HasAura(SPELL_SOAR_BUFF))
+                        GetCaster()->RemoveAurasDueToSpell(SPELL_SOAR_BUFF);
+
+                    PreventDefaultAction();
+                    return;
+                }
+
+                if(!GetCaster()->HasAura(SPELL_SOAR_BUFF))
+                    GetCaster()->CastSpell(GetCaster(), SPELL_SOAR_BUFF, true);
+
+                // We handle the health regen here, normal heal regen isn't working....
+                if(GetCaster()->GetHealth() < GetCaster()->GetMaxHealth())
+                    GetCaster()->SetHealth(GetCaster()->GetHealth() +  (uint32)((double) GetCaster()->GetMaxHealth()*0.2));
+            }
+
+            void HandleOnEffectApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if(!GetCaster()->HasAura(SPELL_SOAR_BUFF))
+                    GetCaster()->CastSpell(GetCaster(), SPELL_SOAR_BUFF, true);
+            }
+
+            void Register()
+            {
+                OnEffectPeriodic += AuraEffectPeriodicFn(spell_oculus_soarAuraScript::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+                OnEffectApply += AuraEffectApplyFn(spell_oculus_soarAuraScript::HandleOnEffectApply, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_oculus_soarAuraScript();
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
@@ -733,4 +782,6 @@ void AddSC_boss_eregos()
     new spell_oculus_dream_funnel();
     // Ruby Drake Spells
     new spell_oculus_evasive_charges();
+    // Common Drake Spells
+    new spell_oculus_soar();
 }

@@ -704,6 +704,7 @@ class spell_oculus_evasive_charges : public SpellScriptLoader
 
             void HandleOnEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
             {
+                GetCaster()->RemoveAurasDueToSpell(SPELL_RUBY_EVASIVE_MANEUVERS);
                 GetCaster()->ModifyAuraState(AURA_STATE_UNKNOWN22, false);
             }
 

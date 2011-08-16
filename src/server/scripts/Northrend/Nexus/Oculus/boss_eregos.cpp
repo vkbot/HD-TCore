@@ -67,6 +67,14 @@ enum Actions
     ACTION_SET_NORMAL_EVENTS = 1
 };
 
+enum CommonDrakeSpells
+{
+    SPELL_DRAKE_FLAG_VISUAL                       = 53797,
+    SPELL_SOAR_TRIGGER                            = 50325,
+    SPELL_SOAR_BUFF                               = 50024,
+    SPELL_SCALE_STATS                             = 66667,
+};
+
 /*Ruby Drake ,
 (npc 27756) (item 37860)
 (summoned by spell Ruby Essence = 37860 ---> Call Amber Drake == 49462 ---> Summon 27756)
@@ -81,8 +89,6 @@ enum RubyDrake
     SPELL_RUBY_EVASIVE_MANEUVERS                  = 50240,          //Instant - 5 sec. cooldown - Allows your drake to dodge all incoming attacks and spells. Requires Evasive Charges to use. Each attack or spell dodged while this ability is active burns one Evasive Charge. Lasts 30 sec. or until all charges are exhausted.
     //you do not have acces to until you kill Mage-Lord Urom
     SPELL_RUBY_MARTYR                             = 50253,          //Instant - 10 sec. cooldown - Redirect all harmful spells cast at friendly drakes to yourself for 10 sec.
-    SPELL_DRAKE_FLAG_VISUAL                       = 53797,
-    SPELL_SOAR_BUFF                               = 50024,
 };
 /*Amber Drake,
 (npc 27755)  (item 37859)
@@ -762,6 +768,77 @@ class spell_oculus_soar : public SpellScriptLoader
         }
 };
 
+class spell_oculus_rider_aura : public SpellScriptLoader
+{
+    public:
+        spell_oculus_rider_aura() : SpellScriptLoader("spell_oculus_rider_aura") { }
+
+        class spell_oculus_rider_auraAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_oculus_rider_auraAuraScript);
+
+            uint64 _drakeGUID;
+
+            bool CheckRequirement(Unit* /*target*/)
+            {
+                if (GetCaster()->isInCombat())
+                    return false;
+
+                return true;
+            }
+
+            void HandleOnEffectApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* caster = GetCaster();
+                Creature* drake = caster->GetVehicleCreatureBase();
+
+                if(!drake || !caster)
+                    return;
+
+                switch(aurEff->GetEffIndex())
+                {
+                    case EFFECT_1:
+                        _drakeGUID = drake->GetGUID();
+                        caster->AddAura(SPELL_DRAKE_FLAG_VISUAL, caster);
+                        caster->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        drake->CastSpell(drake, SPELL_SOAR_TRIGGER);
+                        if(drake->GetEntry() == NPC_RUBY_DRAKE_VEHICLE)
+                            drake->CastSpell(drake, SPELL_RUBY_EVASIVE_AURA);
+                        break;
+                    case EFFECT_2:
+                        caster->AddAura(SPELL_SCALE_STATS, drake);
+                        PreventDefaultAction();
+                        break;
+                }
+            }
+
+            void HandleOnEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if(Creature* drake = GetCaster()->GetCreature(*GetCaster(), _drakeGUID))
+                {
+                    drake->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+                    drake->RemoveAurasDueToSpell(SPELL_SOAR_TRIGGER);
+                    drake->RemoveAurasDueToSpell(SPELL_RUBY_EVASIVE_AURA);
+                }
+                GetCaster()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                GetCaster()->RemoveAurasDueToSpell(SPELL_DRAKE_FLAG_VISUAL);
+            }
+
+            void Register()
+            {
+                DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_oculus_rider_auraAuraScript::CheckRequirement);
+                OnEffectApply += AuraEffectApplyFn(spell_oculus_rider_auraAuraScript::HandleOnEffectApply, EFFECT_1, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+                OnEffectApply += AuraEffectApplyFn(spell_oculus_rider_auraAuraScript::HandleOnEffectApply, EFFECT_2, SPELL_AURA_LINKED, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+                OnEffectRemove += AuraEffectRemoveFn(spell_oculus_rider_auraAuraScript::HandleOnEffectRemove, EFFECT_1, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_oculus_rider_auraAuraScript();
+        }
+};
+
 void AddSC_boss_eregos()
 {
     new boss_eregos();
@@ -784,4 +861,5 @@ void AddSC_boss_eregos()
     new spell_oculus_evasive_charges();
     // Common Drake Spells
     new spell_oculus_soar();
+    new spell_oculus_rider_aura();
 }

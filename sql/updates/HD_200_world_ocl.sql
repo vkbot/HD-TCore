@@ -17,6 +17,12 @@ DELETE FROM `disables` WHERE sourcetype = 4 AND entry IN(7323, 7324, 7325, 7177,
 
 -- Velocidades de los dragones
 UPDATE `creature_template` SET `speed_walk` = 1, `speed_run` = 1 WHERE `entry` IN (27755, 27756, 27692);
+-- El aura del draco rubi no tiene que ser un spell
+UPDATE `creature_template` SET `spell2` = 50240, `spell3` = 50253, `spell4` = 0 WHERE `entry` = 27756;
+-- Los spells para montar deben ser instantaneos
+UPDATE `npc_spellclick_spells` SET `spell_id` = 49460 WHERE `npc_entry` = 27755;
+UPDATE `npc_spellclick_spells` SET `spell_id` = 49464 WHERE `npc_entry` = 27756;
+UPDATE `npc_spellclick_spells` SET `spell_id` = 49346 WHERE `npc_entry` = 27692;
 
 -- Scripts de mobs de "tierra"
 UPDATE `creature_template` SET `ScriptName` = 'npc_centrifuge_construct' WHERE `entry` = 27641;
@@ -54,7 +60,7 @@ UPDATE `gameobject` SET `spawntimesecs` = 608400 WHERE `id` IN (191349, 193603);
 UPDATE `gameobject` SET `spawntimesecs` = 608400 WHERE `id` = 191351;
 
 -- == Spells de los dragones ==
-DELETE FROM `spell_script_names` WHERE spell_id IN (49840, 49838, 49592, 50341, 50344, 50241, 50325);
+DELETE FROM `spell_script_names` WHERE spell_id IN (49840, 49838, 49592, 50341, 50344, 50241, 50325, 49460, 49464, 49346);
 INSERT INTO `spell_script_names` VALUES
 (49840, 'spell_oculus_shock_lance'),
 (49838, 'spell_oculus_stop_time'),
@@ -62,4 +68,7 @@ INSERT INTO `spell_script_names` VALUES
 (50341,'spell_oculus_touch_nightmare'),
 (50344,'spell_oculus_dream_funnel'),
 (50241, 'spell_oculus_evasive_charges'),
-(50325, 'spell_oculus_soar');
+(50325, 'spell_oculus_soar'),
+(49460, 'spell_oculus_rider_aura'),
+(49464, 'spell_oculus_rider_aura'),
+(49346, 'spell_oculus_rider_aura');

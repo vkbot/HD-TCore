@@ -36,6 +36,7 @@ enum Yells
     SAY_KILL_2                                    = -1578007,
     SAY_KILL_3                                    = -1578008,
     SAY_DEATH                                     = -1578009,
+    SAY_VAROS_SPAWN                               = -1578010,
     SAY_PULL_1                                    = -1578011,
     SAY_PULL_2                                    = -1578012,
     SAY_PULL_3                                    = -1578013,
@@ -132,6 +133,8 @@ public:
             _JustDied();
 
             DoScriptText(SAY_DEATH, me);
+            if(Creautre* varos = me->GetCreature(*me, instance->GetData64(DATA_VAROS)))
+                DoScriptText(SAY_VAROS_SPAWN, varos)
         }
 
         void KilledUnit(Unit* /*victim*/)

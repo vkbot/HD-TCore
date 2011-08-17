@@ -21,10 +21,14 @@
 
 enum Says
 {
-    SAY_AGGRO           = 0,
-    SAY_AZURE           = 1,
-    SAY_AZURE_EMOTE     = 2,
-    SAY_DEATH           = 3
+    SAY_AGGRO           = -1578029,
+    SAY_AZURE_1         = -1578030,
+    SAY_AZURE_2         = -1578031,
+    SAY_AZURE_3         = -1578032,
+    SAY_KILL_1          = -1578033,
+    SAY_KILL_2          = -1578034,
+    SAY_DEATH           = -1578035,
+    SAY_AZURE_EMOTE     = -1578036,
 };
 
 enum Spells
@@ -89,7 +93,7 @@ public:
 
             _EnterCombat();
 
-            Talk(SAY_AGGRO);
+            DoScriptText(SAY_AGGRO, me);
         }
 
         float GetCoreEnergizeOrientation()
@@ -137,8 +141,8 @@ public:
                     case EVENT_CALL_AZURE:
                         // not sure how blizz handles this, i cant see any pattern between the differnt spells
                         DoCast(me, SPELL_CALL_AZURE_RING_CAPTAIN);
-                        Talk(SAY_AZURE);
-                        Talk(SAY_AZURE_EMOTE);
+                        DoScriptText(RAND(SAY_AZURE_1, SAY_AZURE_2, SAY_AZURE_3), me)
+                        DoScriptText(SAY_AZURE_EMOTE, me);
                         events.ScheduleEvent(EVENT_CALL_AZURE, urand(20, 25) * IN_MILLISECONDS);
                         break;
                     case EVENT_AMPLIFY_MAGIC:
@@ -155,7 +159,12 @@ public:
         {
             _JustDied();
 
-            Talk(SAY_DEATH);
+            DoScriptText(SAY_DEATH, me);
+        }
+
+        void KilledUnit(Unit* /*victim*/)
+        {
+            DoScriptText(RAND(SAY_KILL_1, SAY_KILL_2, SAY_KILL_3), me);
         }
 
         bool AttackersAreMounted()

@@ -55,6 +55,20 @@ insert into `script_texts` (`entry`, `npc_entry`, `content_default`, `sound`, `t
 ('-1578006','27654','A fitting punishment!','13602','1','Un castigo apropiado...','Un castigo apropiado...'),
 ('-1578005','27654','The prisoners shall not go free. The word of Malygos is law!','13594','1','Los prisioneros no serán liberados. ¡La palabra de Malygos es ley!','Los prisioneros no serán liberados. ¡La palabra de Malygos es ley!');
 
+-- VAROS
+
+-- Textos
+DELETE FROM script_texts WHERE npc_entry = 27447;
+insert into `script_texts` (`entry`, `npc_entry`, `content_default`, `sound`, `type`, `content_loc6`, `content_loc7`) values
+('-1578010','27447','Intruders, your victory will be short-lived. I am Commander Varos Cloudstrider. My drakes control the skies and protect this conduit. I will see to it personally that the Oculus does not fall into your hands!','13648','1','Intrusos, vuestra victoria será efímera. Soy el Comandante Varos Zancanubes. Mis dracos controlan el cielo y protejen este conducto. Yo me encargaré personalmente de que El Oculus no caiga en vuestro poder.','Intrusos, vuestra victoria será efímera. Soy el Comandante Varos Zancanubes. Mis dracos controlan el cielo y protejen este conducto. Yo me encargaré personalmente de que El Oculus no caiga en vuestro poder.'),
+('-1578029','27447','There will be no mercy!','13649','1','¡No habrá piedad!','¡No habrá piedad!'),
+('-1578030','27447','Blast them! Destroy them!','13650','1','¡Reventadlos! ¡Acabad con ellos!','¡Reventadlos! ¡Acabad con ellos!'),
+('-1578031','27447','Take no prisoners! Attack! ','13651','1','¡No tomeis prisioneros! ¡Atacad!','¡No tomeis prisioneros! ¡Atacad!'),
+('-1578032','27447','Strike now! Obliterate them!','13652','1','¡Atacad ahora! ¡Borradlos del mapa!','¡Atacad ahora! ¡Borradlos del mapa!'),
+('-1578033','27447','I warned you!','13653','1','¡Te avisé!','¡Te avisé!'),
+('-1578034','27447','Oculus is ours!','13654','1','¡El Oculus es nuestro!','¡El Oculus es nuestro!'),
+('-1578035','27447','They are... too strong! Underestimated their... fortitude.','13655','1','¡Son... demasiado fuertes! Hemos subestimado su... fortaleza...',NULL),
+('-1578036','27447','%s calls an Azure Ring Captain!','0','4','¡%s llama a un Capitan del Anillo Azur!','¡%s llama a un Capitan del Anillo Azur!');
 -- EREGOS --
 
 -- Anomalia plana

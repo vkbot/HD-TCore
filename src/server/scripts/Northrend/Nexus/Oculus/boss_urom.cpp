@@ -314,8 +314,8 @@ public:
             _JustDied();
 
             DoScriptText(SAY_DEATH, me);
-            if(Creautre* varos = me->GetCreature(*me, instance->GetData64(DATA_EREGOS)))
-                DoScriptText(SAY_EREGOS_SPAWN, varos)
+            if(Creature* eregos = me->GetCreature(*me, instance->GetData64(DATA_EREGOS)))
+                DoScriptText(SAY_EREGOS_SPAWN, eregos);
         }
 
         void LeaveCombat()

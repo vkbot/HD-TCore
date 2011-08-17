@@ -141,7 +141,7 @@ public:
                     case EVENT_CALL_AZURE:
                         // not sure how blizz handles this, i cant see any pattern between the differnt spells
                         DoCast(me, SPELL_CALL_AZURE_RING_CAPTAIN);
-                        DoScriptText(RAND(SAY_AZURE_1, SAY_AZURE_2, SAY_AZURE_3), me)
+                        DoScriptText(RAND(SAY_AZURE_1, SAY_AZURE_2, SAY_AZURE_3), me);
                         DoScriptText(SAY_AZURE_EMOTE, me);
                         events.ScheduleEvent(EVENT_CALL_AZURE, urand(20, 25) * IN_MILLISECONDS);
                         break;
@@ -164,7 +164,7 @@ public:
 
         void KilledUnit(Unit* /*victim*/)
         {
-            DoScriptText(RAND(SAY_KILL_1, SAY_KILL_2, SAY_KILL_3), me);
+            DoScriptText(RAND(SAY_KILL_1, SAY_KILL_2), me);
         }
 
         bool AttackersAreMounted()

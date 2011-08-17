@@ -133,8 +133,8 @@ public:
             _JustDied();
 
             DoScriptText(SAY_DEATH, me);
-            if(Creautre* varos = me->GetCreature(*me, instance->GetData64(DATA_VAROS)))
-                DoScriptText(SAY_VAROS_SPAWN, varos)
+            if(Creature* varos = me->GetCreature(*me, instance->GetData64(DATA_VAROS)))
+                DoScriptText(SAY_VAROS_SPAWN, varos);
         }
 
         void KilledUnit(Unit* /*victim*/)

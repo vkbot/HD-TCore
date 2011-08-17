@@ -37,6 +37,24 @@ INSERT INTO `conditions` VALUES
 (13, 0, 51024, 0, 18, 1, 28239, 0, 0, '', NULL);
 UPDATE `creature_template` SET `modelid2` = 11686, `faction_A` = 35, `faction_H` = 35 WHERE `entry` IN (28239, 31628);
 
+-- DRAKOS
+
+-- Textos
+DELETE FROM script_texts WHERE npc_entry = 27654;
+insert into `script_texts` (`entry`, `npc_entry`, `content_default`, `sound`, `type`, `content_loc6`, `content_loc7`) values
+('-1578017','27654','Can you fly?','13597','1','¿Podeis volar?','¿Podeis volar?'),
+('-1578016','27654','I will crush you!','13596','1','¡Os aplastaré!','¡Os aplastaré!'),
+('-1578015','27654','Tremble, worms!','13595','1','¡Temblad, gusanos!','¡Temblad, gusanos!'),
+('-1578014','27654','I condemn you to death!','13601','1','¡Os condeno a muerte!','¡Os condeno a muerte!'),
+('-1578013','27654','None shall escape!','13600','1','¡Nadie escapará!','¡Nadie escapará!'),
+('-1578012','27654','Gather \'round...','13599','1','¡Reunios!','¡Reunios!'),
+('-1578011','27654','It is too late to run!','13598','1','¡Es demasiado tarde para correr!','¡Es demasiado tarde para correr!'),
+('-1578009','27654','The war... goes on.','13605','1','La guerra... continua...','La guerra... continua...'),
+('-1578008','27654','Another casualty of war!','13604','1','¡Otra baja de guerra!','¡Otra baja de guerra!'),
+('-1578007','27654','Sentence: executed!','13603','1','¡Sentencia ejecutada!','¡Sentencia ejecutada!'),
+('-1578006','27654','A fitting punishment!','13602','1','Un castigo apropiado...','Un castigo apropiado...'),
+('-1578005','27654','The prisoners shall not go free. The word of Malygos is law!','13594','1','Los prisioneros no serán liberados. ¡La palabra de Malygos es ley!','Los prisioneros no serán liberados. ¡La palabra de Malygos es ley!');
+
 -- EREGOS --
 
 -- Anomalia plana

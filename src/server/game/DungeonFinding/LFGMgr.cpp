@@ -632,6 +632,7 @@ void LFGMgr::Join(Player* plr, uint8 roles, const LfgDungeonSet& selectedDungeon
             }
             SetSelectedDungeons(guid, dungeons);
         }
+        plr->CastSpell(plr, LFG_SPELL_DUNGEON_COOLDOWN, true);
         AddToQueue(guid, uint8(plr->GetTeam()));
     }
     sLog->outDebug(LOG_FILTER_LFG, "LFGMgr::Join: [" UI64FMTD "] joined with %u members. dungeons: %u", guid, grp ? grp->GetMembersCount() : 1, uint8(dungeons.size()));
@@ -1722,8 +1723,12 @@ void LFGMgr::TeleportPlayer(Player* plr, bool out, bool fromOpcode /*= false*/)
                 }
 
                 if (plr->TeleportTo(mapid, x, y, z, orientation))
+                {
                     // FIXME - HACK - this should be done by teleport, when teleporting far
                     plr->RemoveAurasByType(SPELL_AURA_MOUNTED);
+                    if(dungeon->type != LFG_TYPE_RANDOM)
+                        plr->CastSpell(plr, LFG_SPELL_LUCK_OF_THE_DRAW, true);
+                }
                 else
                 {
                     error = LFG_TELEPORTERROR_INVALID_LOCATION;

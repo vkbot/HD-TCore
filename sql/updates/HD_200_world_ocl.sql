@@ -69,6 +69,23 @@ insert into `script_texts` (`entry`, `npc_entry`, `content_default`, `sound`, `t
 ('-1578034','27447','Oculus is ours!','13654','1','¡El Oculus es nuestro!','¡El Oculus es nuestro!'),
 ('-1578035','27447','They are... too strong! Underestimated their... fortitude.','13655','1','¡Son... demasiado fuertes! Hemos subestimado su... fortaleza...',NULL),
 ('-1578036','27447','%s calls an Azure Ring Captain!','0','4','¡%s llama a un Capitan del Anillo Azur!','¡%s llama a un Capitan del Anillo Azur!');
+
+-- UROM
+
+-- Textos
+DELETE FROM script_texts WHERE npc_entry = 27655;
+insert into `script_texts` (`entry`, `npc_entry`, `content_default`, `sound`, `type`, `content_loc6`, `content_loc7`) values
+('-1578000','27655','What do we have here... those that would defy the Spell-Weaver? Those without foresight our understanding. How can i make you see? Malygos is saving the world from itself! Bah! You are hardly worth my time!','13635','1','¿Qué tenemos aquí? ¿Aquellos que se atreven a desafiar al Tejehechizos? ¿Aquellos a quienes les falta previsión y entendimiento? ¿Cómo puedo explicaroslo? Malygos está intentando salvar al mundo de sí mismo... ¡Bah! ¡No malgasteis mi tiempo!','¿Qué tenemos aquí? ¿Aquellos que se atreven a desafiar al Tejehechizos? ¿Aquellos a quienes les falta previsión y entendimiento? ¿Cómo puedo explicaroslo? Malygos está intentando salvar al mundo de sí mismo... ¡Bah! ¡No malgasteis mi tiempo!'),
+('-1578001','27655','Clearly my pets failed. Perhaps another demonstration is in order.','13636','1','Es evidente que mis mascotas han fracasdo. Quizás sea necesaria otra \"demostración\".','Es evidente que mis mascotas han fracasdo. Quizás sea necesaria otra \"demostración\".'),
+('-1578002','27655','Still you fight. Still you cling to misguided principles. If you survive, you\'ll find me in the center ring.','13637','1','¡Seguis luchando! ¡Seguis aferrandoos a principios erroneos! ¡Si sobrevivis me encontrareis en el anillo central!','¡Seguis luchando! ¡Seguis aferrandoos a principios erroneos! ¡Si sobrevivis me encontrareis en el anillo central!'),
+('-1578003','27655','Poor blind fools!','13638','1','¡Pobres necios ciegos!','¡Pobres necios ciegos!'),
+('-1578004','27655','A taste... just a small taste... of the Spell-Weaver\'s power!','13639','1','Una muestra... ¡Una pequeña muestra del poder del Tejehechizos!','Una muestra... ¡Una pequeña muestra del poder del Tejehechizos!'),
+('-1578018','27655','Everything I\'ve done... has been for Azeroth...','13644','1','Todo lo que he hecho... ha sido por Azeroth...','Todo lo que he hecho... ha sido por Azeroth...'),
+('-1578019','27655','If only you understood!','13641','1','¡Si pudieras entenderlo...!','¡Si pudieras entenderlo...!'),
+('-1578020','27655','Now do you see? Do you?!','13642','1','¡Ahora lo ves! ¡¿Verdad?!','¡Ahora lo ves! ¡¿Verdad?!'),
+('-1578021','27655','Unfortunate, but necessary.','13643','1','Desafortunado... ¡Pero necesario!','Desafortunado... ¡Pero necesario!'),
+('-1578037','27655','So much unstable energy... but worth the risk to destroy you!','13640','1','¡Tanta energía inestable! ¡Pero vale la pena correr el riesgo de destruiros!','¡Tanta energía inestable! ¡Pero vale la pena correr el riesgo de destruiros!');
+
 -- EREGOS --
 
 -- Anomalia plana

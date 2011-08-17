@@ -1441,6 +1441,42 @@ public:
     }
 };
 
+class spell_gen_luck_of_the_draw : public SpellScriptLoader
+{
+    public:
+        spell_gen_luck_of_the_draw() : SpellScriptLoader("spell_gen_luck_of_the_draw") { }
+
+        class spell_gen_luck_of_the_draw_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_gen_luck_of_the_draw_AuraScript);
+
+            bool CheckAreaTarget(Unit* target)
+            {
+                Unit* caster = GetCaster();
+                Map* map = target->GetMap();
+
+                if(!caster || !map)
+                    return false;
+
+                if(map->IsDungeon())
+                    return true;
+
+                target->RemoveAurasDueToSpell(this->GetId());
+                return false;
+
+            }
+            void Register()
+            {
+                DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_gen_luck_of_the_draw_AuraScript::CheckAreaTarget);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_gen_luck_of_the_draw_AuraScript();
+        }
+};
+
 void AddSC_generic_spell_scripts()
 {
     new spell_gen_absorb0_hitlimit1();
@@ -1474,4 +1510,5 @@ void AddSC_generic_spell_scripts()
     new spell_gen_launch();
     new spell_gen_vehicle_scaling();
     new spell_gen_oracle_wolvar_reputation();
+    new spell_gen_luck_of_the_draw();
 }

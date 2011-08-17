@@ -185,6 +185,14 @@ enum trashSpells
     H_SPELL_BLIZZARD         = 59278,
     SPELL_FLAMESTRIKE        = 16102,
     H_SPELL_FLAMESTRIKE      = 61402,
+
+    // Greater Ley-Whelp
+    SPELL_ARCANE_BOLT        = 62249,
+    H_SPELL_ARCANE_BOLT      = 62250,
+
+    // Azure ring guardian
+    SPELL_ICE_BEAM           = 49549,
+    H_SPELL_ICE_BEAM         = 59211,
 };
 
 class npc_centrifuge_construct : public CreatureScript
@@ -377,10 +385,97 @@ public:
     }
 };
 
+class npc_greater_ley_whelp : public CreatureScript
+{
+public:
+    npc_greater_ley_whelp() : CreatureScript("npc_greater_ley_whelp") { }
+
+    struct npc_greater_ley_whelpAI : public ScriptedAI
+    {
+        npc_greater_ley_whelpAI(Creature *creature) : ScriptedAI(creature) {}
+
+        uint32 boltTimer;
+        void Reset()
+        {
+            boltTimer = urand(3000, 6000);
+            me->SetFlying(true);
+            me->SetSpeed(MOVE_FLIGHT, 2.1f);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if(!UpdateVictim())
+                return;
+
+            if(boltTimer <= diff)
+            {
+                if(Unit* target = this->SelectTarget(SELECT_TARGET_TOPAGGRO))
+                    if(Unit* drake = target->GetVehicleBase())
+                        DoCast(drake, IsHeroic() ? H_SPELL_ARCANE_BOLT : SPELL_ARCANE_BOLT);
+                    else
+                        DoCast(target, IsHeroic() ? H_SPELL_ARCANE_BOLT : SPELL_ARCANE_BOLT);
+                boltTimer = urand(5000, 8000);
+            }
+            else boltTimer -= diff;
+
+            DoMeleeAttackIfReady();
+        }
+    };
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_greater_ley_whelpAI(creature);
+    }
+};
+
+class npc_azure_ring_guardian : public CreatureScript
+{
+public:
+    npc_azure_ring_guardian() : CreatureScript("npc_azure_ring_guardian") { }
+
+    struct npc_azure_ring_guardianAI : public ScriptedAI
+    {
+        npc_azure_ring_guardianAI(Creature *creature) : ScriptedAI(creature) {}
+
+        uint32 boltTimer;
+        void Reset()
+        {
+            boltTimer = urand(6000, 12000);
+            me->SetFlying(true);
+            me->SetSpeed(MOVE_FLIGHT, 3.1f);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if(!UpdateVictim())
+                return;
+
+            if(boltTimer <= diff)
+            {
+                if(Unit* target = this->SelectTarget(SELECT_TARGET_TOPAGGRO))
+                    if(Unit* drake = target->GetVehicleBase())
+                        DoCast(drake, IsHeroic() ? H_SPELL_ICE_BEAM : SPELL_ICE_BEAM);
+                    else
+                        DoCast(target, IsHeroic() ? H_SPELL_ICE_BEAM : SPELL_ICE_BEAM);
+
+                boltTimer = urand(6000, 12000);
+            }
+            else boltTimer -= diff;
+
+            DoMeleeAttackIfReady();
+        }
+    };
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_azure_ring_guardianAI(creature);
+    }
+};
+
 void AddSC_oculus()
 {
     new npc_oculus_drake();
     new npc_centrifuge_construct();
     new npc_ringlord_conjurer();
     new npc_ringlord_sorceress();
+    new npc_greater_ley_whelp();
+    new npc_azure_ring_guardian();
 }

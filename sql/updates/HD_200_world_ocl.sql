@@ -24,10 +24,15 @@ UPDATE `npc_spellclick_spells` SET `spell_id` = 49460 WHERE `npc_entry` = 27755;
 UPDATE `npc_spellclick_spells` SET `spell_id` = 49464 WHERE `npc_entry` = 27756;
 UPDATE `npc_spellclick_spells` SET `spell_id` = 49346 WHERE `npc_entry` = 27692;
 
+
 -- Scripts de mobs de "tierra"
 UPDATE `creature_template` SET `ScriptName` = 'npc_centrifuge_construct' WHERE `entry` = 27641;
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ringlord_conjurer' WHERE `entry` = 27640;
 UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_ringlord_sorceress' WHERE `entry` = 27639;
+
+-- Scripts de los mobs "de aire"
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_greater_ley_whelp' WHERE `entry` = 28276;
+UPDATE `creature_template` SET `AIName` = '', `ScriptName` = 'npc_azure_ring_guardian' WHERE `entry` = 27638;
 
 -- VAROS --
 -- Haz arcano
@@ -121,3 +126,8 @@ INSERT INTO `spell_script_names` VALUES
 (49460, 'spell_oculus_rider_aura'),
 (49464, 'spell_oculus_rider_aura'),
 (49346, 'spell_oculus_rider_aura');
+
+-- Reset del logro "Haz que cuente"
+UPDATE trinichars.worldstates SET value=256 WHERE entry=20004;
+INSERT INTO trinichars.stored_db_queries VALUES
+(2, 'Borrado del logro "Haz que cuente"', 0, 'DELETE FROM `character_achievement` WHERE achievement = 1868;');

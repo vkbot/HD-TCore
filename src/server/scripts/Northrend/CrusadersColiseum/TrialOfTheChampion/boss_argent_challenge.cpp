@@ -34,6 +34,9 @@ enum eSpells
     SPELL_HAMMER_RIGHTEOUS      = 66867,
     SPELL_RADIANCE              = 66935,
     SPELL_VENGEANCE             = 66865,
+    // Necessary for the achievement
+    SPELL_HAMMER_RIGHTEOUS_P    = 66904,
+    SPELL_HAMMER_JUSTICE_STUN   = 66940,
 
     //Paletress
     SPELL_SMITE                 = 66536,
@@ -91,6 +94,45 @@ class spell_eadric_radiance : public SpellScriptLoader
         SpellScript *GetSpellScript() const
         {
             return new spell_eadric_radiance_SpellScript();
+        }
+};
+
+class spell_eadric_hammer_of_righteous : public SpellScriptLoader
+{
+    public:
+        spell_eadric_hammer_of_righteous() : SpellScriptLoader("spell_eadric_hammer_of_righteous") {}
+
+        class spell_eadric_hammer_of_righteousSpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_eadric_hammer_of_righteousSpellScript)
+
+            void HandleBeforeHit()
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTargetUnit();
+
+                if(!caster || !target)
+                    return;
+
+                Aura* hammerJustice = target->GetAura(SPELL_HAMMER_JUSTICE_STUN);
+
+                // Target isn't affected by HoJ so is able to pickup the Hammer
+                if(!hammerJustice)
+                {
+                    caster->CastSpell(target, SPELL_HAMMER_RIGHTEOUS_P);
+                    PreventHitDamage();
+                }
+            }
+
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_eadric_hammer_of_righteousSpellScript::HandleBeforeHit);
+            }
+        };
+
+        SpellScript *GetSpellScript() const
+        {
+            return new spell_eadric_hammer_of_righteousSpellScript();
         }
 };
 
@@ -547,6 +589,7 @@ void AddSC_boss_argent_challenge()
 {
     new boss_eadric();
     new spell_eadric_radiance();
+    new spell_eadric_hammer_of_righteous();
     new boss_paletress();
     new npc_memory();
     new npc_argent_soldier();

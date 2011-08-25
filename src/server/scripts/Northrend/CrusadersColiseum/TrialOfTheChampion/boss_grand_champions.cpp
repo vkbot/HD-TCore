@@ -62,13 +62,14 @@ enum eSpells
     SPELL_HEX_OF_MENDING            = 67534,
 
     // Jaelyne Evensong && Zul'tore || Hunter
-    SPELL_DISENGAGE                 = 68340, //not implemented in the AI yet...
+    SPELL_DISENGAGE                 = 68339, //not implemented in the AI yet...
     SPELL_LIGHTNING_ARROWS          = 66083,
     SPELL_MULTI_SHOT                = 66081,
     SPELL_SHOOT                     = 65868,
     SPELL_SHOOT_H                   = 67988,
 
     // Lana Stouthammer Evensong && Deathstalker Visceri || Rouge
+    SPELL_DEADLY_POISON             = 67711,
     SPELL_EVISCERATE                = 67709,
     SPELL_EVISCERATE_H              = 68317,
     SPELL_FAN_OF_KNIVES             = 67706,
@@ -533,11 +534,12 @@ public:
 
         void EnterCombat(Unit* who)
         {
-            DoCast(me, SPELL_EARTH_SHIELD);
-            DoCast(who, SPELL_HEX_OF_MENDING);
             if(InstanceScript* instance = me->GetInstanceScript())
                 if(instance->GetData(BOSS_GRAND_CHAMPIONS) != IN_PROGRESS)
                     instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
+
+            DoCast(me, SPELL_EARTH_SHIELD);
+            DoCast(who, SPELL_HEX_OF_MENDING);
         };
 
         void DamageTaken(Unit* /*attacker*/, uint32 & damage)
@@ -831,6 +833,8 @@ public:
             if(InstanceScript* instance = me->GetInstanceScript())
                 if(instance->GetData(BOSS_GRAND_CHAMPIONS) != IN_PROGRESS)
                     instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
+
+            DoCast(me, SPELL_DEADLY_POISON);
         };
 
         void UpdateAI(const uint32 uiDiff)

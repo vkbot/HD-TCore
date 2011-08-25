@@ -316,11 +316,17 @@ public:
             {
                 damage = 0;
                 defeated = true;
-                me->GetMotionMaster()->MoveIdle();
-                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                me->GetMotionMaster()->MovePoint(1, me->GetHomePosition());
                 me->SetTarget(0);
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if(type == POINT_MOTION_TYPE && id == 1)
+                me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
@@ -330,6 +336,13 @@ public:
 
             return 0;
         }
+
+        void EnterCombat(Unit* who)
+        {
+            if(InstanceScript* instance = me->GetInstanceScript())
+                if(instance->GetData(BOSS_GRAND_CHAMPIONS) != IN_PROGRESS)
+                    instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
+        };
 
         void UpdateAI(const uint32 uiDiff)
         {
@@ -419,11 +432,17 @@ public:
             {
                 damage = 0;
                 defeated = true;
-                me->GetMotionMaster()->MoveIdle();
-                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                me->GetMotionMaster()->MovePoint(1, me->GetHomePosition());
                 me->SetTarget(0);
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if(type == POINT_MOTION_TYPE && id == 1)
+                me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
@@ -433,6 +452,13 @@ public:
 
             return 0;
         }
+
+        void EnterCombat(Unit* who)
+        {
+            if(InstanceScript* instance = me->GetInstanceScript())
+                if(instance->GetData(BOSS_GRAND_CHAMPIONS) != IN_PROGRESS)
+                    instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
+        };
 
         void UpdateAI(const uint32 uiDiff)
         {
@@ -509,6 +535,9 @@ public:
         {
             DoCast(me, SPELL_EARTH_SHIELD);
             DoCast(who, SPELL_HEX_OF_MENDING);
+            if(InstanceScript* instance = me->GetInstanceScript())
+                if(instance->GetData(BOSS_GRAND_CHAMPIONS) != IN_PROGRESS)
+                    instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
         };
 
         void DamageTaken(Unit* /*attacker*/, uint32 & damage)
@@ -523,11 +552,17 @@ public:
             {
                 damage = 0;
                 defeated = true;
-                me->GetMotionMaster()->MoveIdle();
-                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                me->GetMotionMaster()->MovePoint(1, me->GetHomePosition());
                 me->SetTarget(0);
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if(type == POINT_MOTION_TYPE && id == 1)
+                me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
@@ -637,11 +672,17 @@ public:
             {
                 damage = 0;
                 defeated = true;
-                me->GetMotionMaster()->MoveIdle();
-                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                me->GetMotionMaster()->MovePoint(1, me->GetHomePosition());
                 me->SetTarget(0);
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if(type == POINT_MOTION_TYPE && id == 1)
+                me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
@@ -651,6 +692,13 @@ public:
 
             return 0;
         }
+
+        void EnterCombat(Unit* who)
+        {
+            if(InstanceScript* instance = me->GetInstanceScript())
+                if(instance->GetData(BOSS_GRAND_CHAMPIONS) != IN_PROGRESS)
+                    instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
+        };
 
         void UpdateAI(const uint32 uiDiff)
         {
@@ -757,11 +805,17 @@ public:
             {
                 damage = 0;
                 defeated = true;
-                me->GetMotionMaster()->MoveIdle();
-                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                me->GetMotionMaster()->MovePoint(1, me->GetHomePosition());
                 me->SetTarget(0);
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
+        }
+
+        void MovementInform(uint32 type, uint32 id)
+        {
+            if(type == POINT_MOTION_TYPE && id == 1)
+                me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
@@ -771,6 +825,13 @@ public:
 
             return 0;
         }
+
+        void EnterCombat(Unit* who)
+        {
+            if(InstanceScript* instance = me->GetInstanceScript())
+                if(instance->GetData(BOSS_GRAND_CHAMPIONS) != IN_PROGRESS)
+                    instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
+        };
 
         void UpdateAI(const uint32 uiDiff)
         {

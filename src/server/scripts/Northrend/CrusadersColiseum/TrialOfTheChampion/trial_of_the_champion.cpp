@@ -40,6 +40,8 @@ EndContentData */
 ######*/
 
 const Position SpawnPosition = {746.261f, 657.401f, 411.681f, 4.65f};
+const Position OutStadiumPosition = {747.03f, 687.483f, 412.373f, 1.53475f};
+const Position AnnouncerPosition = {733.877f, 662.269f, 412.393f, 4.61586f};
 const Position IntroPosition[3] =
 {
     {724.854f, 640.344f, 411.829f, 5.60704f}, // Boss
@@ -858,7 +860,6 @@ public:
                         events.ScheduleEvent(11, 4000);
                         break;
                     case 11:
-
                         // Set home positions, in case of wipe, this avoids summons to go to the SpawnPos
                         for(uint8 i=0; i<3; i++)
                             if(Creature* boss = me->GetCreature(*me, bossGUID[i]))
@@ -872,6 +873,13 @@ public:
                                     add->SetHomePosition(add->GetPositionX(), add->GetPositionY(), add->GetPositionZ(), add->GetOrientation());
                                 }
 
+                        // Move to the door position
+                        me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                        me->GetMotionMaster()->MovePoint(0, AnnouncerPosition);
+                        me->SetTarget(stalkerGUID);
+                        events.ScheduleEvent(12, 19000);
+                        break;
+                    case 12:
                         //Close Door
                         if (GameObject* pGO = GameObject::GetGameObject(*me, pInstance->GetData64(DATA_MAIN_GATE)))
                             pInstance->HandleGameObject(pGO->GetGUID(), false);
@@ -928,7 +936,7 @@ public:
                         // Despawn previous wave
                         for(uint8 i=0; i<3; i++)
                             if(Creature* add = me->GetCreature(*me, addsGUID[0][i]))
-                                add->DespawnOrUnsummon(4000);
+                                add->DespawnOrUnsummon();
 
                         // Start attack of second wave of adds
                         if(!addsAttacking)
@@ -966,7 +974,7 @@ public:
                         // Despawn previous wave
                         for(uint8 i=0; i<3; i++)
                             if(Creature* add = me->GetCreature(*me, addsGUID[1][i]))
-                                add->DespawnOrUnsummon(4000);
+                                add->DespawnOrUnsummon();
 
                         // Start attack of third wave of adds
                         if(!addsAttacking)
@@ -1004,7 +1012,7 @@ public:
                         // Despawn previous wave
                         for(uint8 i=0; i<3; i++)
                             if(Creature* add = me->GetCreature(*me, addsGUID[2][i]))
-                                add->DespawnOrUnsummon(4000);
+                                add->DespawnOrUnsummon();
 
                         // Start attack of wave of bosses
                         if(!addsAttacking)
@@ -1057,7 +1065,7 @@ public:
                 switch(events.ExecuteEvent())
                 {
                     case 1:
-                        // TODO: Dismount all players and teleport them to the center
+                        AreAllPlayersMounted(true);
                         events.ScheduleEvent(2, 0);
                         break;
                     case 2:
@@ -1068,6 +1076,8 @@ public:
                                 bossEntry[i] = boss->GetEntry();
                                 bossGUID[i] = boss->GetGUID();
                                 boss->SetTarget(stalkerGUID);
+                                // Prevent bosses from falling down the ground
+                                boss->SetPosition(boss->GetPositionX(), boss->GetPositionY(), boss->GetPositionZ()+0.1f, boss->GetOrientation());
                                 // Set positions
                                 switch(i)
                                 {
@@ -1087,12 +1097,13 @@ public:
                                 boss->SetReactState(REACT_AGGRESSIVE);
                                 boss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
                             }
+                        events.ScheduleEvent(4, 10000);
                         break;
                     case 4: // Wait for the death of all of them
                         defeatedCount = 0;
                         for(uint8 i=0; i<3; i++)
-                            if(Creature* add = me->GetCreature(*me, bossGUID[i]))
-                                if(add->AI()->GetData(DATA_CHAMPION_DEFEATED) == 1)
+                            if(Creature* boss = me->GetCreature(*me, bossGUID[i]))
+                                if(boss->AI()->GetData(DATA_CHAMPION_DEFEATED) == 1)
                                     defeatedCount++;
 
                         if(defeatedCount>=3)
@@ -1104,12 +1115,18 @@ public:
                             events.ScheduleEvent(4, 1000);
                         break;
                     case 5:
-                        sLog->outBasic("HERE WE GO!");
+                        for(uint8 i=0; i<3; i++)
+                            if(Creature* boss = me->GetCreature(*me, bossGUID[i]))
+                            {
+                                boss->GetMotionMaster()->MovePoint(0, OutStadiumPosition);
+                                boss->DespawnOrUnsummon(4000);
+                            }
                         pInstance->SetData(BOSS_GRAND_CHAMPIONS, DONE);
                         break;
                 }
             }
         }
+
         void AggroAllPlayers(Creature* creature)
         {
             Map::PlayerList const &PlList = me->GetMap()->GetPlayers();
@@ -1141,6 +1158,45 @@ public:
                     }
                 }
             }
+        }
+
+        /**
+        Used for checking if players are mounted before starting gauntlet
+        and teleporting and unmounting them after defeating the mounted waves.
+        */
+        bool AreAllPlayersMounted(bool dismountAndTeleport = false)
+        {
+            Map::PlayerList const &PlList = me->GetMap()->GetPlayers();
+
+            if (PlList.isEmpty())
+                return false;
+
+            for (Map::PlayerList::const_iterator i = PlList.begin(); i != PlList.end(); ++i)
+                if (Player* player = i->getSource())
+                {
+                    if (player->isGameMaster())
+                        continue;
+
+                    if (player->isAlive())
+                    {
+                        if(Creature* mount = player->GetVehicleCreatureBase())
+                        {
+                            if(dismountAndTeleport)
+                            {
+                                player->ExitVehicle();
+                                mount->DespawnOrUnsummon();
+                            }
+                        } else if(!dismountAndTeleport)
+                            return false;
+
+                        if(dismountAndTeleport)
+                            player->NearTeleportTo(746.851f, 608.875f, 411.172f, 1.60308f);
+                    }
+                }
+
+            return true;
+            //if(dismountAndTeleport)
+                //TODO: set all vehicles in dungeon as not selectable
         }
     };
 
@@ -1181,7 +1237,7 @@ public:
         {
             creature->AI()->SetData(EVENT_INTRO, IN_PROGRESS);
             player->CLOSE_GOSSIP_MENU();
-            //CAST_AI(npc_announcer_toc5::npc_announcer_toc5AI, creature->AI())->StartEncounter();
+            //CAST_AI(npc_announcer_toc5::npc_announcer_toc5AI, creature->AI())->AreAllPlayersMounted();
         }
 
         return true;

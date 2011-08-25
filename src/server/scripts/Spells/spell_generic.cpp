@@ -161,6 +161,61 @@ class spell_gen_burn_brutallus : public SpellScriptLoader
         }
 };
 
+enum eDefendVisual
+{
+	SPELL_VISUAL_SHIELD_1 = 63130,
+	SPELL_VISUAL_SHIELD_2 = 63131,
+	SPELL_VISUAL_SHIELD_3 = 63132,
+};
+
+class spell_toc5_defend : public SpellScriptLoader
+{
+    public:
+        spell_toc5_defend() : SpellScriptLoader("spell_toc5_defend") { }
+
+        class spell_toc5_defendAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_toc5_defendAuraScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_1))
+                    return false;
+                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_2))
+                    return false;
+                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_3))
+                    return false;
+                return true;
+            }
+
+            void RefreshVisualShields(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+				Unit* caster = GetCaster();
+
+				if(!caster)
+					return;
+
+			    uint32 shieldVisual[3] = {SPELL_VISUAL_SHIELD_1, SPELL_VISUAL_SHIELD_2, SPELL_VISUAL_SHIELD_3};
+
+                for(uint8 i=0; i < 3; ++i)
+                    caster->RemoveAurasDueToSpell(shieldVisual[i]);
+
+                if(Aura* defend = caster->GetAura(GetId()))
+                    caster->CastSpell(caster, shieldVisual[defend->GetStackAmount()-1], true);
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_toc5_defendAuraScript::RefreshVisualShields, EFFECT_FIRST_FOUND, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, AURA_EFFECT_HANDLE_CHANGE_AMOUNT_SEND_FOR_CLIENT_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_toc5_defendAuraScript();
+        }
+};
+
 // 45472 Parachute
 enum eParachuteSpells
 {

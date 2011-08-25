@@ -2912,6 +2912,11 @@ void SpellMgr::LoadDbcDataCorrections()
             spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_TARGET_ENEMY;
             spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_NEARBY_ENEMY;
             break;
+        case 68284: // ToC5 Charge
+            spellInfo->Effect[1] = SPELL_EFFECT_SCHOOL_DAMAGE;
+            spellInfo->EffectImplicitTargetA[1] = TARGET_UNIT_TARGET_ENEMY;
+            spellInfo->EffectBasePoints[1] = 20000;
+            break;
         case 42835: // Spout
             spellInfo->Effect[0] = 0; // remove damage effect, only anim is needed
             break;

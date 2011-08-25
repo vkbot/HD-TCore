@@ -29,7 +29,8 @@ enum eData
     DATA_LESSER_CHAMPIONS_DEFEATED,
     DATA_START,
     DATA_IN_POSITION,
-    DATA_ARGENT_SOLDIER_DEFEATED
+    DATA_ARGENT_SOLDIER_DEFEATED,
+    DATA_CHAMPION_DEFEATED,
 };
 
 enum Data64
@@ -57,10 +58,22 @@ enum eNpcs
 
     // Alliance Champions
     NPC_JACOB                   = 34705,
+    NPC_MOUNTED_JACOB           = 347050,
     NPC_AMBROSE                 = 34702,
+    NPC_MOUNTED_AMBROSE         = 347020,
     NPC_COLOSOS                 = 34701,
+    NPC_MOUNTED_COLOSOS         = 347010,
     NPC_JAELYNE                 = 34657,
+    NPC_MOUNTED_JAELYNE         = 346570,
     NPC_LANA                    = 34703,
+    NPC_MOUNTED_LANA            = 347030,
+
+    // Alliance Pre-Champs
+    NPC_STORMWIND_CHAMPION      = 35328,
+    NPC_IRONFORGE_CHAMPION      = 35329,
+    NPC_GNOMEREGAN_CHAMPION     = 35331,
+    NPC_DARNASSUS_CHAMPION      = 35332,
+    NPC_EXODAR_CHAMPION         = 35330,
 
     NPC_EADRIC                  = 35119,
     NPC_PALETRESS               = 34928,

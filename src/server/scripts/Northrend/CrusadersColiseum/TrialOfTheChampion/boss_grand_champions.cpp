@@ -408,19 +408,19 @@ public:
     {
         boss_mage_toc5AI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint32 uiFireBallTimer;
-        uint32 uiBlastWaveTimer;
-        uint32 uiHasteTimer;
-        uint32 uiPolymorphTimer;
+        uint32 fireBallTimer;
+        uint32 blastWaveTimer;
+        uint32 hasteTimer;
+        uint32 polymorphTimer;
         bool defeated;
 
         void Reset()
         {
             defeated = false;
-            uiFireBallTimer = 5000;
-            uiPolymorphTimer  = 8000;
-            uiBlastWaveTimer = 12000;
-            uiHasteTimer = 22000;
+            fireBallTimer = 2000;
+            polymorphTimer  = 8000;
+            blastWaveTimer = 12000;
+            hasteTimer = 22000;
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
 
@@ -432,6 +432,7 @@ public:
                 return;
             }
 
+            // Prevent damage from finishing hit and mark creature as defeated
             if(damage >= me->GetHealth())
             {
                 damage = 0;
@@ -445,12 +446,14 @@ public:
 
         void MovementInform(uint32 type, uint32 id)
         {
+            // Knee at home position after being defeated
             if(type == POINT_MOTION_TYPE && id == 1)
                 me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
         {
+            // Used by Announcer on periodic check of the bosses state
             if(type == DATA_CHAMPION_DEFEATED)
                 return defeated ? 1 : 0;
 
@@ -472,32 +475,35 @@ public:
             if(defeated)
                 return;
 
-            if (uiPolymorphTimer <= uiDiff)
+            if(me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+            if (polymorphTimer <= uiDiff)
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
                     DoCast(target, SPELL_POLYMORPH);
-                uiPolymorphTimer = 8000;
-            } else uiPolymorphTimer -= uiDiff;
+                polymorphTimer = 8000;
+            } else polymorphTimer -= uiDiff;
 
-            if (uiBlastWaveTimer <= uiDiff)
+            if (blastWaveTimer <= uiDiff)
             {
                 DoCastAOE(SPELL_BLAST_WAVE, false);
-                uiBlastWaveTimer = 13000;
-            } else uiBlastWaveTimer -= uiDiff;
+                blastWaveTimer = 13000;
+            } else blastWaveTimer -= uiDiff;
 
-            if (uiHasteTimer <= uiDiff)
+            if (hasteTimer <= uiDiff)
             {
                 me->InterruptNonMeleeSpells(true);
 
                 DoCast(me, SPELL_HASTE);
-                uiHasteTimer = 22000;
-            } else uiHasteTimer -= uiDiff;
+                hasteTimer = 22000;
+            } else hasteTimer -= uiDiff;
 
-            if (uiFireBallTimer <= uiDiff)
+            if (fireBallTimer <= uiDiff)
             {
                 DoCastVictim(SPELL_FIREBALL);
-                uiFireBallTimer = 2600;
-            } else uiFireBallTimer -= uiDiff;
+                fireBallTimer = 2600;
+            } else fireBallTimer -= uiDiff;
 
             DoMeleeAttackIfReady();
         }
@@ -607,7 +613,6 @@ public:
                 {
                     if (Unit* friendUnit = DoSelectLowestHpFriendly(40))
                     {
-                        DoCast(friendUnit, SPELL_EARTH_SHIELD);
                         DoCast(friendUnit, SPELL_HEALING_WAVE);
                         healingWaveTimer = 5000;
                     }
@@ -620,9 +625,17 @@ public:
 
             if (eartShieldTimer <= diff)
             {
-                DoCast(me, SPELL_EARTH_SHIELD);
+                Unit* friendUnit = DoSelectLowestHpFriendly(40);
 
-                eartShieldTimer = urand(30000, 35000);
+                if (friendUnit && friendUnit->HealthBelowPct(60) && !friendUnit->HasAura(SPELL_EARTH_SHIELD))
+                {
+                    DoCast(friendUnit, SPELL_EARTH_SHIELD);
+                    eartShieldTimer = urand(30000, 35000);
+                }else if(!me->HasAura(SPELL_EARTH_SHIELD))
+                {
+                    DoCast(me, SPELL_EARTH_SHIELD);
+                    eartShieldTimer = urand(30000, 35000);
+                } else eartShieldTimer = urand(1500, 3500);
             } else eartShieldTimer -= diff;
 
             if (hexMendingTimer <= diff)

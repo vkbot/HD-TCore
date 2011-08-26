@@ -787,24 +787,27 @@ public:
     {
         boss_rouge_toc5AI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint32 uiEviscerateTimer;
-        uint32 uiFanKivesTimer;
-        uint32 uiPosionBottleTimer;
+        uint32 eviscerateTimer;
+        uint32 fanKivesTimer;
+        uint32 posionBottleTimer;
 
         bool defeated;
 
         void Reset()
         {
+            if(defeated)
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
+            defeated = false;
+            eviscerateTimer = 8000;
+            fanKivesTimer   = 14000;
+            posionBottleTimer = 19000;
+
+            // Settings for offhand attack
             DoCast(me, SPELL_DUAL_WIELD, true);
             me->SetAttackTime(OFF_ATTACK, 1400);
             me->SetStatFloatValue(UNIT_FIELD_MINOFFHANDDAMAGE, IsHeroic() ? 5000.0f : 3000.0f);
             me->SetStatFloatValue(UNIT_FIELD_MAXOFFHANDDAMAGE, IsHeroic() ? 6000.0f : 4000.0f);
-
-            defeated = false;
-            uiEviscerateTimer = 8000;
-            uiFanKivesTimer   = 14000;
-            uiPosionBottleTimer = 19000;
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
 
         void DamageTaken(Unit* /*attacker*/, uint32 & damage)
@@ -815,6 +818,7 @@ public:
                 return;
             }
 
+            // Prevent damage from finishing hit and mark creature as defeated
             if(damage >= me->GetHealth())
             {
                 damage = 0;
@@ -828,12 +832,14 @@ public:
 
         void MovementInform(uint32 type, uint32 id)
         {
+            // Knee at home position after being defeated
             if(type == POINT_MOTION_TYPE && id == 1)
                 me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
         {
+            // Used by Announcer on periodic check of the bosses state
             if(type == DATA_CHAMPION_DEFEATED)
                 return defeated ? 1 : 0;
 
@@ -849,7 +855,7 @@ public:
             DoCast(me, SPELL_DEADLY_POISON);
         };
 
-        void UpdateAI(const uint32 uiDiff)
+        void UpdateAI(const uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -857,24 +863,24 @@ public:
             if(defeated)
                 return;
 
-            if (uiEviscerateTimer <= uiDiff)
+            if (eviscerateTimer <= diff)
             {
                 DoCast(me->getVictim(), SPELL_EVISCERATE);
-                uiEviscerateTimer = 8000;
-            } else uiEviscerateTimer -= uiDiff;
+                eviscerateTimer = 8000;
+            } else eviscerateTimer -= diff;
 
-            if (uiFanKivesTimer <= uiDiff)
+            if (fanKivesTimer <= diff)
             {
                 DoCastAOE(SPELL_FAN_OF_KNIVES, false);
-                uiFanKivesTimer = 14000;
-            } else uiFanKivesTimer -= uiDiff;
+                fanKivesTimer = 14000;
+            } else fanKivesTimer -= diff;
 
-            if (uiPosionBottleTimer <= uiDiff)
+            if (posionBottleTimer <= diff)
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
                     DoCast(target, SPELL_POISON_BOTTLE);
-                uiPosionBottleTimer = 19000;
-            } else uiPosionBottleTimer -= uiDiff;
+                posionBottleTimer = 19000;
+            } else posionBottleTimer -= diff;
 
             DoMeleeAttackIfReady();
         }

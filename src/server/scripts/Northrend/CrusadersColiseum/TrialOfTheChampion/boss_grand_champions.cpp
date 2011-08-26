@@ -63,7 +63,9 @@ enum eSpells
 
     // Jaelyne Evensong && Zul'tore || Hunter
     SPELL_DISENGAGE                 = 68339, //not implemented in the AI yet...
-    SPELL_LIGHTNING_ARROWS          = 66083,
+    SPELL_LIGHTNING_ARROWS          = 66085,
+    SPELL_LIGHTNING_ARROWS_DAMAGE   = 66095,
+    SPELL_LIGHTNING_ARROWS_VISUAL   = 66083,
     SPELL_MULTI_SHOT                = 66081,
     SPELL_SHOOT                     = 65868,
     SPELL_SHOOT_H                   = 67988,
@@ -634,32 +636,31 @@ class boss_hunter_toc5 : public CreatureScript
 public:
     boss_hunter_toc5() : CreatureScript("boss_hunter_toc5") { }
 
-        // Jaelyne Evensong && Zul'tore || Hunter
+    // Jaelyne Evensong && Zul'tore || Hunter
     struct boss_hunter_toc5AI : public ScriptedAI
     {
         boss_hunter_toc5AI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint32 uiShootTimer;
-        uint32 uiMultiShotTimer;
-        uint32 uiLightningArrowsTimer;
+        uint32 multiShotTimer;
+        uint32 lightningArrowsTimer;
+        uint32 disengageTimer;
 
-        uint64 uiTargetGUID;
-
-        bool bShoot;
+        bool ligthingArrows;
         bool defeated;
 
         void Reset()
         {
+            if(defeated)
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
             defeated = false;
-            uiShootTimer = 12000;
-            uiMultiShotTimer = 0;
-            uiLightningArrowsTimer = 7000;
-
-            uiTargetGUID = 0;
-
-            bShoot = false;
-
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            ligthingArrows = false;
+            multiShotTimer = 2000;
+            disengageTimer = 3000;
+            lightningArrowsTimer = 7000;
+            me->SetSheath(SHEATH_STATE_RANGED);
+            me->SetStatFloatValue(UNIT_FIELD_MINRANGEDDAMAGE, IsHeroic() ? 5000.0f : 3000.0f);
+            me->SetStatFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE, IsHeroic() ? 6000.0f : 4000.0f);
         }
 
         void DamageTaken(Unit* /*attacker*/, uint32 & damage)
@@ -670,6 +671,7 @@ public:
                 return;
             }
 
+            // Prevent damage from finishing hit and mark creature as defeated
             if(damage >= me->GetHealth())
             {
                 damage = 0;
@@ -683,12 +685,14 @@ public:
 
         void MovementInform(uint32 type, uint32 id)
         {
+            // Knee at home position after being defeated
             if(type == POINT_MOTION_TYPE && id == 1)
                 me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
         {
+            // Used by Announcer on periodic check of the bosses state
             if(type == DATA_CHAMPION_DEFEATED)
                 return defeated ? 1 : 0;
 
@@ -702,7 +706,7 @@ public:
                     instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
         };
 
-        void UpdateAI(const uint32 uiDiff)
+        void UpdateAI(const uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -710,52 +714,60 @@ public:
             if(defeated)
                 return;
 
-            if (uiLightningArrowsTimer <= uiDiff)
-            {
-                DoCastAOE(SPELL_LIGHTNING_ARROWS, false);
-                uiLightningArrowsTimer = 7000;
-            } else uiLightningArrowsTimer -= uiDiff;
+            if(me->HasUnitState(UNIT_STAT_CASTING))
+                return;
 
-            if (uiShootTimer <= uiDiff)
+            if(me->GetDistance(me->getVictim()) >= 30.0f)
+                me->GetMotionMaster()->MoveChase(me->getVictim());
+            else
+                me->GetMotionMaster()->MoveIdle();
+
+            if (disengageTimer <= diff)
             {
-                if (Unit* target = SelectTarget(SELECT_TARGET_FARTHEST, 0, 30.0f))
+                if(me->GetDistance(me->getVictim()) <= 3.0f)
                 {
-                    uiTargetGUID = target->GetGUID();
-                    DoCast(target, SPELL_SHOOT);
+                    DoCast(SPELL_DISENGAGE);
+                    disengageTimer = 7000;
                 }
-                uiShootTimer = 12000;
-                uiMultiShotTimer = 3000;
-                bShoot = true;
-            } else uiShootTimer -= uiDiff;
+                else disengageTimer = 1000;
+            } else disengageTimer -= diff;
 
-            if (bShoot && uiMultiShotTimer <= uiDiff)
+            if (lightningArrowsTimer <= diff && !me->HasAura(SPELL_LIGHTNING_ARROWS))
             {
-                me->InterruptNonMeleeSpells(true);
-                Unit* target = Unit::GetUnit(*me, uiTargetGUID);
+                DoCastAOE(SPELL_LIGHTNING_ARROWS_VISUAL, false);
+                lightningArrowsTimer = 14000;
+                ligthingArrows = true;
+                return;
+            } else lightningArrowsTimer -= diff;
 
-                if (target && me->IsInRange(target, 5.0f, 30.0f, false))
-                {
-                    DoCast(target, SPELL_MULTI_SHOT);
-                } else
-                {
-                    Map::PlayerList const& players = me->GetMap()->GetPlayers();
-                    if (me->GetMap()->IsDungeon() && !players.isEmpty())
+            // Trigger the aura after the visual storm
+            if(ligthingArrows && !me->HasAura(SPELL_LIGHTNING_ARROWS_VISUAL))
+            {
+                DoCast(SPELL_LIGHTNING_ARROWS);
+                ligthingArrows = false;
+            }
+
+            if (multiShotTimer <= diff)
+            {
+                if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST))
+                    if(target->IsInRange(me, 5.0f, 35.0f))
                     {
-                        for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                        {
-                            Player* player = itr->getSource();
-                            if (player && !player->isGameMaster() && me->IsInRange(player, 5.0f, 30.0f, false))
-                            {
-                                DoCast(target, SPELL_MULTI_SHOT);
-                                break;
-                            }
-                        }
-                    }
-                }
-                bShoot = false;
-            } else uiMultiShotTimer -= uiDiff;
+                        DoCast(target, SPELL_MULTI_SHOT);
+                        multiShotTimer = 6000;
+                    } else multiShotTimer = 1000;
+            } else multiShotTimer -= diff;
 
-            DoMeleeAttackIfReady();
+            // Shoot instead of meele swing
+            if (me->isAttackReady())
+            {
+                if(Aura* lArrows = me->GetAura(SPELL_LIGHTNING_ARROWS))
+                {
+                    DoCast(me->getVictim(), SPELL_LIGHTNING_ARROWS_DAMAGE, true);
+                    lArrows->ModCharges(-1);
+                }
+                DoCast(me->getVictim(), SPELL_SHOOT, true);
+                me->resetAttackTimer();
+            }
         }
     };
 

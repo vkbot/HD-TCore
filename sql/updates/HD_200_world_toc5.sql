@@ -1,6 +1,7 @@
 DELETE FROM `spell_script_names` WHERE spell_id IN (66867);
 INSERT INTO `spell_script_names` VALUES
-(66867, 'spell_eadric_hammer_of_righteous'); -- Hammer can be picked by target if isn't under HoJ effect
+(66867, 'spell_eadric_hammer_of_righteous'), -- Hammer can be picked by target if isn't under HoJ effect
+(67534, 'spell_toc5_hex_mending');           -- Hex of mending spell effect
 
 DELETE FROM `spell_linked_spell` WHERE `spell_trigger` = 66905;
 INSERT INTO `spell_linked_spell` VALUES

@@ -60,6 +60,7 @@ enum eSpells
     SPELL_HEALING_WAVE              = 67528,
     SPELL_HEALING_WAVE_H            = 68318,
     SPELL_HEX_OF_MENDING            = 67534,
+    SPELL_HEX_OF_MENDING_HEAL       = 67535,
 
     // Jaelyne Evensong && Zul'tore || Hunter
     SPELL_DISENGAGE                 = 68339, //not implemented in the AI yet...
@@ -518,19 +519,19 @@ public:
     {
         boss_shaman_toc5AI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint32 uiChainLightningTimer;
-        uint32 uiEartShieldTimer;
-        uint32 uiHealingWaveTimer;
-        uint32 uiHexMendingTimer;
+        uint32 chainLightningTimer;
+        uint32 eartShieldTimer;
+        uint32 healingWaveTimer;
+        uint32 hexMendingTimer;
         bool defeated;
 
         void Reset()
         {
             defeated = false;
-            uiChainLightningTimer = 16000;
-            uiHealingWaveTimer = 12000;
-            uiEartShieldTimer = urand(30000, 35000);
-            uiHexMendingTimer = urand(20000, 25000);
+            chainLightningTimer = 5000;
+            healingWaveTimer = 12000;
+            eartShieldTimer = urand(30000, 35000);
+            hexMendingTimer = urand(1000, 5000);
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
 
@@ -541,7 +542,6 @@ public:
                     instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
 
             DoCast(me, SPELL_EARTH_SHIELD);
-            DoCast(who, SPELL_HEX_OF_MENDING);
         };
 
         void DamageTaken(Unit* /*attacker*/, uint32 & damage)
@@ -552,6 +552,7 @@ public:
                 return;
             }
 
+            // Prevent damage from finishing hit and mark creature as defeated
             if(damage >= me->GetHealth())
             {
                 damage = 0;
@@ -565,19 +566,21 @@ public:
 
         void MovementInform(uint32 type, uint32 id)
         {
+            // Knee at home position after being defeated
             if(type == POINT_MOTION_TYPE && id == 1)
                 me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
         {
+            // Used by Announcer on periodic check of the bosses state
             if(type == DATA_CHAMPION_DEFEATED)
                 return defeated ? 1 : 0;
 
             return 0;
         }
 
-        void UpdateAI(const uint32 uiDiff)
+        void UpdateAI(const uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -585,41 +588,49 @@ public:
             if(defeated)
                 return;
 
-            if (uiChainLightningTimer <= uiDiff)
+            if(me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+            if (chainLightningTimer <= diff)
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
                     DoCast(target, SPELL_CHAIN_LIGHTNING);
 
-                uiChainLightningTimer = 16000;
-            } else uiChainLightningTimer -= uiDiff;
+                chainLightningTimer = 8000;
+            } else chainLightningTimer -= diff;
 
-            if (uiHealingWaveTimer <= uiDiff)
+            if (healingWaveTimer <= diff)
             {
                 bool chance = urand(0, 1);
 
-                if (!chance)
+                if(!chance)
                 {
-                    if (Unit* pFriend = DoSelectLowestHpFriendly(40))
-                        DoCast(pFriend, SPELL_HEALING_WAVE);
-                } else
+                    if (Unit* friendUnit = DoSelectLowestHpFriendly(40))
+                    {
+                        DoCast(friendUnit, SPELL_EARTH_SHIELD);
+                        DoCast(friendUnit, SPELL_HEALING_WAVE);
+                        healingWaveTimer = 5000;
+                    }
+                }else
+                {
                     DoCast(me, SPELL_HEALING_WAVE);
+                    healingWaveTimer = 8000;
+                }
+            } else healingWaveTimer -= diff;
 
-                uiHealingWaveTimer = 12000;
-            } else uiHealingWaveTimer -= uiDiff;
-
-            if (uiEartShieldTimer <= uiDiff)
+            if (eartShieldTimer <= diff)
             {
                 DoCast(me, SPELL_EARTH_SHIELD);
 
-                uiEartShieldTimer = urand(30000, 35000);
-            } else uiEartShieldTimer -= uiDiff;
+                eartShieldTimer = urand(30000, 35000);
+            } else eartShieldTimer -= diff;
 
-            if (uiHexMendingTimer <= uiDiff)
+            if (hexMendingTimer <= diff)
             {
                 DoCastVictim(SPELL_HEX_OF_MENDING, true);
 
-                uiHexMendingTimer = urand(20000, 25000);
-            } else uiHexMendingTimer -= uiDiff;
+                hexMendingTimer = urand(12000, 15000);
+            } else hexMendingTimer -= diff;
 
             DoMeleeAttackIfReady();
         }
@@ -892,6 +903,68 @@ public:
     }
 };
 
+class player_hex_mendingAI : public PlayerAI
+{
+    public:
+        player_hex_mendingAI(Player* player) : PlayerAI(player) {}
+
+        void HealReceived(Unit* healer, uint32 & addHealth)
+        {
+            me->CastCustomSpell(SPELL_HEX_OF_MENDING_HEAL, SPELLVALUE_BASE_POINT0, int32(addHealth*2.0f), me, true);
+        }
+
+        void UpdateAI(const uint32 /*diff*/) { }
+
+    private:
+        uint64 casterGUID;
+};
+
+class spell_toc5_hex_mending : public SpellScriptLoader
+{
+    public:
+        spell_toc5_hex_mending() : SpellScriptLoader("spell_toc5_hex_mending") { }
+
+        class spell_toc5_hex_mending_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_toc5_hex_mending_AuraScript);
+
+            void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                oldAI = GetTarget()->GetAI();
+                GetTarget()->SetAI(new player_hex_mendingAI(GetTarget()->ToPlayer()));
+                oldAIState = GetTarget()->IsAIEnabled;
+                GetTarget()->IsAIEnabled = true;
+            }
+
+            void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                delete GetTarget()->GetAI();
+                GetTarget()->SetAI(oldAI);
+                GetTarget()->IsAIEnabled = oldAIState;
+            }
+
+            void Register()
+            {
+                AfterEffectApply += AuraEffectApplyFn(spell_toc5_hex_mending_AuraScript::OnApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+                AfterEffectRemove += AuraEffectRemoveFn(spell_toc5_hex_mending_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            }
+
+            UnitAI* oldAI;
+            bool oldAIState;
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_toc5_hex_mending_AuraScript();
+        }
+};
+
 void AddSC_boss_grand_champions()
 {
     new generic_vehicleAI_toc5();
@@ -900,4 +973,5 @@ void AddSC_boss_grand_champions()
     new boss_shaman_toc5();
     new boss_hunter_toc5();
     new boss_rouge_toc5();
+    new spell_toc5_hex_mending();
 }

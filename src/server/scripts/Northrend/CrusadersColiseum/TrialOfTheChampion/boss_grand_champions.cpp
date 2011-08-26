@@ -154,7 +154,7 @@ public:
             if(defeated)
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             me->Mount(GetMountId());
-            uiChargeTimer = 5000;
+            uiChargeTimer = urand(1000, 5000);
             uiShieldBreakerTimer = 8000;
             uiBuffTimer = urand(4000, 5000);
             uiThrustTimer = 2000;
@@ -208,11 +208,7 @@ public:
 
         void EnterCombat(Unit* /*who*/)
         {
-            DoCastSpellShield();
-        }
-
-        void DoCastSpellShield()
-        {
+            // Set Defend to 3 charges at start
             for (uint8 i = 0; i < 3; ++i)
                 DoCast(me, SPELL_SHIELD, true);
         }
@@ -227,10 +223,12 @@ public:
 
             if (uiBuffTimer <= uiDiff)
             {
-                if (!me->HasAura(SPELL_SHIELD))
-                    DoCastSpellShield();
-
-                uiBuffTimer = urand(4000, 5000);
+                Aura* defend = me->GetAura(SPELL_SHIELD);
+                if (!defend || defend->GetStackAmount() < 3)
+                {
+                    DoCast(SPELL_SHIELD);
+                    uiBuffTimer = urand(4000, 5000);
+                } else uiBuffTimer = urand(1000, 2000);
             }else uiBuffTimer -= uiDiff;
 
     //        if (uiThrustTimer <= uiDiff)
@@ -242,8 +240,12 @@ public:
 
             if (uiChargeTimer <= uiDiff)
             {
-                if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
+                if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST))
+                {
+                    DoResetThreat();
+                    me->AddThreat(target, 5.0f);
                     DoCast(target, SPELL_CHARGE, true);
+                }
                 uiChargeTimer = 5000;
             }else uiChargeTimer -= uiDiff;
 
@@ -293,18 +295,17 @@ public:
     {
         boss_warrior_toc5AI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint32 uiBladeStormTimer;
-        uint32 uiInterceptTimer;
-        uint32 uiMortalStrikeTimer;
-        uint32 uiAttackTimer;
+        uint32 bladeStormTimer;
+        uint32 interceptTimer;
+        uint32 mortalStrikeTimer;
         bool defeated;
 
         void Reset()
         {
             defeated = false;
-            uiBladeStormTimer = urand(15000, 20000);
-            uiInterceptTimer  = 7000;
-            uiMortalStrikeTimer = urand(8000, 12000);
+            bladeStormTimer = urand(15000, 20000);
+            interceptTimer  = 7000;
+            mortalStrikeTimer = urand(8000, 12000);
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         }
 
@@ -316,6 +317,7 @@ public:
                 return;
             }
 
+            // Prevent damage from finishing hit and mark creature as defeated
             if(damage >= me->GetHealth())
             {
                 damage = 0;
@@ -329,12 +331,14 @@ public:
 
         void MovementInform(uint32 type, uint32 id)
         {
+            // Knee at home position after being defeated
             if(type == POINT_MOTION_TYPE && id == 1)
                 me->CastSpell(me, SPELL_KNEE, true);
         }
 
         uint32 GetData(uint32 type)
         {
+            // Used by Announcer on periodic check of the bosses state
             if(type == DATA_CHAMPION_DEFEATED)
                 return defeated ? 1 : 0;
 
@@ -348,7 +352,7 @@ public:
                     instance->SetData(BOSS_GRAND_CHAMPIONS, IN_PROGRESS);
         };
 
-        void UpdateAI(const uint32 uiDiff)
+        void UpdateAI(const uint32 diff)
         {
             if (!UpdateVictim())
                 return;
@@ -356,7 +360,7 @@ public:
             if(defeated)
                 return;
 
-            if (uiInterceptTimer <= uiDiff)
+            if (interceptTimer <= diff)
             {
                 Map::PlayerList const& players = me->GetMap()->GetPlayers();
                 if (me->GetMap()->IsDungeon() && !players.isEmpty())
@@ -372,21 +376,21 @@ public:
                             break;
                         }
                     }
-                }
-                uiInterceptTimer = 7000;
-            } else uiInterceptTimer -= uiDiff;
+                   }
+                interceptTimer = 7000;
+            } else interceptTimer -= diff;
 
-            if (uiBladeStormTimer <= uiDiff)
+            if (bladeStormTimer <= diff)
             {
                 DoCastVictim(SPELL_BLADESTORM);
-                uiBladeStormTimer = urand(15000, 20000);
-            } else uiBladeStormTimer -= uiDiff;
+                bladeStormTimer = urand(15000, 20000);
+            } else bladeStormTimer -= diff;
 
-            if (uiMortalStrikeTimer <= uiDiff)
+            if (mortalStrikeTimer <= diff)
             {
                 DoCastVictim(SPELL_MORTAL_STRIKE);
-                uiMortalStrikeTimer = urand(8000, 12000);
-            } else uiMortalStrikeTimer -= uiDiff;
+                mortalStrikeTimer = urand(8000, 12000);
+            } else mortalStrikeTimer -= diff;
 
             DoMeleeAttackIfReady();
         }

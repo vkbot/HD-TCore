@@ -1209,21 +1209,26 @@ public:
     {
         InstanceScript* pInstance = creature->GetInstanceScript();
 
-        if (pInstance &&
-            ((pInstance->GetData(BOSS_GRAND_CHAMPIONS) == DONE &&
-            pInstance->GetData(BOSS_BLACK_KNIGHT) == DONE &&
-            pInstance->GetData(BOSS_ARGENT_CHALLENGE_E) == DONE) ||
-            pInstance->GetData(BOSS_ARGENT_CHALLENGE_P) == DONE))
-            return false;
+        if(pInstance->GetData(BOSS_GRAND_CHAMPIONS) != DONE)
+        {
+            if(CAST_AI(npc_announcer_toc5::npc_announcer_toc5AI, creature->AI())->AreAllPlayersMounted())
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+        }//else if
+        //if (pInstance &&
+        //    ((pInstance->GetData(BOSS_GRAND_CHAMPIONS) == DONE &&
+        //    pInstance->GetData(BOSS_BLACK_KNIGHT) == DONE &&
+        //    pInstance->GetData(BOSS_ARGENT_CHALLENGE_E) == DONE) ||
+        //    pInstance->GetData(BOSS_ARGENT_CHALLENGE_P) == DONE))
+        //    return false;
 
-        if (pInstance &&
-            pInstance->GetData(BOSS_GRAND_CHAMPIONS) == NOT_STARTED &&
-            pInstance->GetData(BOSS_ARGENT_CHALLENGE_E) == NOT_STARTED &&
-            pInstance->GetData(BOSS_ARGENT_CHALLENGE_P) == NOT_STARTED &&
-            pInstance->GetData(BOSS_BLACK_KNIGHT) == NOT_STARTED)
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-        else if (pInstance)
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+        //if (pInstance &&
+        //    pInstance->GetData(BOSS_GRAND_CHAMPIONS) == NOT_STARTED &&
+        //    pInstance->GetData(BOSS_ARGENT_CHALLENGE_E) == NOT_STARTED &&
+        //    pInstance->GetData(BOSS_ARGENT_CHALLENGE_P) == NOT_STARTED &&
+        //    pInstance->GetData(BOSS_BLACK_KNIGHT) == NOT_STARTED)
+        //    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+        //else if (pInstance)
+        //    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
 
         player->SEND_GOSSIP_MENU(player->GetGossipTextId(creature), creature->GetGUID());
 
@@ -1235,108 +1240,19 @@ public:
         player->PlayerTalkClass->ClearMenus();
         if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
         {
-            creature->AI()->SetData(EVENT_INTRO, IN_PROGRESS);
-            player->CLOSE_GOSSIP_MENU();
-            //CAST_AI(npc_announcer_toc5::npc_announcer_toc5AI, creature->AI())->AreAllPlayersMounted();
+            if(creature->AI()->GetData(EVENT_INTRO) != IN_PROGRESS)
+            {
+                creature->AI()->SetData(EVENT_INTRO, IN_PROGRESS);
+                creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                player->CLOSE_GOSSIP_MENU();
+            }
         }
 
         return true;
     }
 };
 
-enum vehicleSpells
-{
-    // Defend
-    SPELL_DEFEND          = 66482,
-    SPELL_VISUAL_SHIELD_1 = 63130,
-    SPELL_VISUAL_SHIELD_2 = 63131,
-    SPELL_VISUAL_SHIELD_3 = 63132,
-
-    // Shield break
-    SPELL_THROW_VISUAL    = 45827,
-};
-
-class spell_toc5_defend : public SpellScriptLoader
-{
-    public:
-        spell_toc5_defend() : SpellScriptLoader("spell_toc5_defend") { }
-
-        class spell_toc5_defendAuraScript : public AuraScript
-        {
-            PrepareAuraScript(spell_toc5_defendAuraScript);
-
-            bool Validate(SpellInfo const* /*spellEntry*/)
-            {
-                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_1))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_2))
-                    return false;
-                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_3))
-                    return false;
-                return true;
-            }
-
-            void RefreshVisualShields(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-            {
-                Unit* caster = GetCaster();
-
-                if(!caster)
-                    return;
-
-                uint32 shieldVisual[3] = {SPELL_VISUAL_SHIELD_1, SPELL_VISUAL_SHIELD_2, SPELL_VISUAL_SHIELD_3};
-
-                for(uint8 i=0; i < 3; ++i)
-                    caster->RemoveAurasDueToSpell(shieldVisual[i]);
-
-                if(Aura* defend = caster->GetAura(GetId()))
-                    caster->CastSpell(caster, shieldVisual[defend->GetStackAmount()-1], true);
-            }
-
-            void Register()
-            {
-                OnEffectApply += AuraEffectApplyFn(spell_toc5_defendAuraScript::RefreshVisualShields, EFFECT_FIRST_FOUND, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, AURA_EFFECT_HANDLE_CHANGE_AMOUNT_SEND_FOR_CLIENT_MASK);
-                OnEffectRemove += AuraEffectRemoveFn(spell_toc5_defendAuraScript::RefreshVisualShields, EFFECT_FIRST_FOUND, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, AURA_EFFECT_HANDLE_CHANGE_AMOUNT_SEND_FOR_CLIENT_MASK);
-            }
-        };
-
-        AuraScript* GetAuraScript() const
-        {
-            return new spell_toc5_defendAuraScript();
-        }
-};
-
-class spell_toc5_charge : public SpellScriptLoader
-{
-    public:
-        spell_toc5_charge() : SpellScriptLoader("spell_toc5_charge") {}
-
-        class spell_toc5_chargeSpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_toc5_chargeSpellScript)
-
-            void OnSpellHit(SpellEffIndex /*effIndex*/)
-            {
-                // Drop 1 charge of defend from the target
-                if(Aura* defend = GetTargetUnit()->GetAura(SPELL_DEFEND))
-                    defend->ModStackAmount(-1);
-
-                //GetCaster()->GetMotionMaster()->MoveConfused();
-            }
-            void Register()
-            {
-                OnEffect += SpellEffectFn(spell_toc5_chargeSpellScript::OnSpellHit, EFFECT_1, SPELL_EFFECT_SCHOOL_DAMAGE);
-            }
-        };
-
-        SpellScript *GetSpellScript() const
-        {
-            return new spell_toc5_chargeSpellScript();
-        }
-};
-
 void AddSC_trial_of_the_champion()
 {
     new npc_announcer_toc5();
-    new spell_toc5_defend();
-    new spell_toc5_charge();
 }

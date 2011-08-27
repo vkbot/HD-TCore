@@ -32,10 +32,12 @@ enum eSpells
 {
     //Vehicle
     SPELL_CHARGE                    = 68284,
-    SPELL_SHIELD_BREAKER            = 68504,
+    SPELL_SHIELD_BREAKER            = 62575,
+    SPELL_SHIELD_BREAKER_VISUAL     = 45815,
     SPELL_SHIELD                    = 66482,
     SPELL_THRUST                    = 62544,
     SPELL_KNEE                      = 68442,
+    // 67870
 
     // Marshal Jacob Alerius && Mokra the Skullcrusher || Warrior
     SPELL_MORTAL_STRIKE             = 68783,
@@ -63,7 +65,7 @@ enum eSpells
     SPELL_HEX_OF_MENDING_HEAL       = 67535,
 
     // Jaelyne Evensong && Zul'tore || Hunter
-    SPELL_DISENGAGE                 = 68339, //not implemented in the AI yet...
+    SPELL_DISENGAGE                 = 68339,
     SPELL_LIGHTNING_ARROWS          = 66085,
     SPELL_LIGHTNING_ARROWS_DAMAGE   = 66095,
     SPELL_LIGHTNING_ARROWS_VISUAL   = 66083,
@@ -231,13 +233,6 @@ public:
                 } else uiBuffTimer = urand(1000, 2000);
             }else uiBuffTimer -= uiDiff;
 
-    //        if (uiThrustTimer <= uiDiff)
-    //        {
-                //if(Unit* target = SelectTarget(SELECT_TARGET_TOPAGGRO))
-                //    DoCast(target, SPELL_THRUST);
-    //            uiThrustTimer = urand(1500, 3000);
-    //        }else uiThrustTimer -= uiDiff;
-
             if (uiChargeTimer <= uiDiff)
             {
                 if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST))
@@ -249,32 +244,15 @@ public:
                 uiChargeTimer = 5000;
             }else uiChargeTimer -= uiDiff;
 
-            //dosen't work at all
-            //if (uiShieldBreakerTimer <= uiDiff)
-            //{
-            //    Vehicle* pVehicle = me->GetVehicleKit();
-            //    if (!pVehicle)
-            //        return;
+            if (uiShieldBreakerTimer <= uiDiff)
+            {
+                if(Unit* target = SelectTarget(SELECT_TARGET_FARTHEST))
+                    DoCast(target, SPELL_SHIELD_BREAKER, true);
 
-            //    if (Unit* pPassenger = pVehicle->GetPassenger(SEAT_ID_0))
-            //    {
-            //        Map::PlayerList const& players = me->GetMap()->GetPlayers();
-            //        if (me->GetMap()->IsDungeon() && !players.isEmpty())
-            //        {
-            //            for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-            //            {
-            //                Player* player = itr->getSource();
-            //                if (player && !player->isGameMaster() && me->IsInRange(player, 10.0f, 30.0f, false))
-            //                {
-            //                    pPassenger->CastSpell(player, SPELL_SHIELD_BREAKER, true);
-            //                    break;
-            //                }
-            //            }
-            //        }
-            //    }
-            //    uiShieldBreakerTimer = 7000;
-            //}else uiShieldBreakerTimer -= uiDiff;
+                uiShieldBreakerTimer = 7000;
+            }else uiShieldBreakerTimer -= uiDiff;
 
+            // We should use thrust instead of this, but it's not working on the way I handle this
             DoMeleeAttackIfReady();
         }
     };
@@ -920,6 +898,286 @@ public:
     }
 };
 
+enum vehicleSpells
+{
+    // Defend
+    SPELL_DEFEND          = 66482,
+    SPELL_VISUAL_SHIELD_1 = 63130,
+    SPELL_VISUAL_SHIELD_2 = 63131,
+    SPELL_VISUAL_SHIELD_3 = 63132,
+
+    // Shield break
+    SPELL_THROW_VISUAL    = 45827,
+};
+
+class spell_toc5_ride_mount : public SpellScriptLoader
+{
+    public:
+        spell_toc5_ride_mount() : SpellScriptLoader("spell_toc5_ride_mount") {}
+
+        class spell_toc5_ride_mount_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_toc5_ride_mount_SpellScript);
+
+            SpellCastResult CheckRequirement()
+            {
+                if(GetCaster()->GetUInt32Value(PLAYER_VISIBLE_ITEM_16_ENTRYID) != 46106)
+                {
+                    SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_MUST_HAVE_LANCE_EQUIPPED);
+                    return SPELL_FAILED_CUSTOM_ERROR;
+                }
+
+                return SPELL_CAST_OK;
+            }
+
+            void HandleBeforeHit()
+            {
+                Unit* target = GetTargetUnit();
+
+                if(!target)
+                    return;
+                target->RemoveAurasDueToSpell(SPELL_DEFEND);
+            }
+
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_toc5_ride_mount_SpellScript::HandleBeforeHit);
+                OnCheckCast += SpellCheckCastFn(spell_toc5_ride_mount_SpellScript::CheckRequirement);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
+        {
+            return new spell_toc5_ride_mount_SpellScript();
+        }
+};
+
+class spell_toc5_defend : public SpellScriptLoader
+{
+    public:
+        spell_toc5_defend() : SpellScriptLoader("spell_toc5_defend") { }
+
+        class spell_toc5_defendAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_toc5_defendAuraScript);
+
+            bool Validate(SpellInfo const* /*spellEntry*/)
+            {
+                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_1))
+                    return false;
+                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_2))
+                    return false;
+                if (!sSpellMgr->GetSpellInfo(SPELL_VISUAL_SHIELD_3))
+                    return false;
+                return true;
+            }
+
+            void RefreshVisualShields(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                Unit* caster = GetCaster();
+
+                if(!caster)
+                    return;
+
+                if(Unit* rider = caster->GetCharmer())
+                {
+                    for(uint8 i=0; i < 3; ++i)
+                        rider->RemoveAurasDueToSpell(SPELL_VISUAL_SHIELD_1 + i);
+
+                    if(Aura* defend = caster->GetAura(GetId()))
+                        rider->CastSpell(rider, SPELL_VISUAL_SHIELD_1 + (defend->GetStackAmount()-1), true);
+                }else
+                {
+                    for(uint8 i=0; i < 3; ++i)
+                        caster->RemoveAurasDueToSpell(SPELL_VISUAL_SHIELD_1 + i);
+
+                    if(Aura* defend = caster->GetAura(GetId()))
+                        caster->CastSpell(caster, SPELL_VISUAL_SHIELD_1 + (defend->GetStackAmount()-1), true);
+                }
+            }
+
+            void Register()
+            {
+                OnEffectApply += AuraEffectApplyFn(spell_toc5_defendAuraScript::RefreshVisualShields, EFFECT_FIRST_FOUND, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, AURA_EFFECT_HANDLE_CHANGE_AMOUNT_SEND_FOR_CLIENT_MASK);
+                OnEffectRemove += AuraEffectRemoveFn(spell_toc5_defendAuraScript::RefreshVisualShields, EFFECT_FIRST_FOUND, SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, AURA_EFFECT_HANDLE_CHANGE_AMOUNT_SEND_FOR_CLIENT_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_toc5_defendAuraScript();
+        }
+};
+
+class spell_toc5_defend_visual : public SpellScriptLoader
+{
+    public:
+        spell_toc5_defend_visual() : SpellScriptLoader("spell_toc5_defend_visual") { }
+
+        class spell_toc5_defend_visual_AuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_toc5_defend_visual_AuraScript);
+
+            bool CheckTargetState(Unit* target)
+            {
+                Unit* caster = GetCaster();
+
+                if(!caster)
+                    return false;
+
+                if(Unit* mount = caster->GetVehicleBase())
+                {
+                    if(!mount->HasAura(SPELL_DEFEND))
+                    {
+                        for(uint8 i=0; i < 3; ++i)
+                            caster->RemoveAurasDueToSpell(SPELL_VISUAL_SHIELD_1 + i);
+                    }
+                }
+                else
+                {
+                    if(!caster->HasAura(SPELL_DEFEND))
+                    {
+                        for(uint8 i=0; i < 3; ++i)
+                            caster->RemoveAurasDueToSpell(SPELL_VISUAL_SHIELD_1 + i);
+                    }
+                }
+
+                return true;
+            }
+
+            void Register()
+            {
+                DoCheckAreaTarget += AuraCheckAreaTargetFn(spell_toc5_defend_visual_AuraScript::CheckTargetState);
+            }
+        };
+
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_toc5_defend_visual_AuraScript();
+        }
+};
+
+class spell_toc5_charge : public SpellScriptLoader
+{
+    public:
+        spell_toc5_charge() : SpellScriptLoader("spell_toc5_charge") {}
+
+        class spell_toc5_chargeSpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_toc5_chargeSpellScript)
+
+            void HandleOnHit(SpellEffIndex /*effIndex*/)
+            {
+                Unit* caster = GetCaster();
+                Unit* target = GetTargetUnit();
+
+                if(!caster || !target)
+                    return;
+
+                uint32 damage = 0;
+
+                switch(GetSpellInfo()->Id)
+                {
+                    case 68282:
+                    default:
+                        damage = 20000;
+                        break;
+                }
+
+                if(Aura* defend = GetTargetUnit()->GetAura(SPELL_DEFEND))
+                    damage -= (damage*(0.3f * defend->GetStackAmount())-1);
+
+                // Deal the damage and show it on caster's log
+                caster->DealDamage(target, damage, NULL, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL);
+                caster->SendSpellNonMeleeDamageLog(target, GetSpellInfo()->Id, damage, SPELL_SCHOOL_MASK_NORMAL, 0, 0, true, 0);
+
+                // Drop 1 charge of defend from the target
+                if(Aura* defend = GetTargetUnit()->GetAura(SPELL_DEFEND))
+                    defend->ModStackAmount(-1);
+            }
+            void Register()
+            {
+                OnEffect += SpellEffectFn(spell_toc5_chargeSpellScript::HandleOnHit, EFFECT_FIRST_FOUND, SPELL_EFFECT_DUMMY);
+            }
+        };
+
+        SpellScript *GetSpellScript() const
+        {
+            return new spell_toc5_chargeSpellScript();
+        }
+};
+
+class spell_toc5_shield_breaker : public SpellScriptLoader
+{
+    public:
+        spell_toc5_shield_breaker() : SpellScriptLoader("spell_toc5_shield_breaker") {}
+
+        class spell_toc5_shield_breakerSpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_toc5_shield_breakerSpellScript)
+
+            bool handled;
+
+            bool Load()
+            {
+                handled = false;
+                return true;
+            }
+
+            void HandleBeforeHit()
+            {
+                if(handled)
+                    return;
+
+                Unit* caster = GetCaster();
+                Unit* target = GetTargetUnit();
+
+                if(!caster || !target)
+                    return;
+
+                uint32 damage = 0;
+
+                switch(GetSpellInfo()->Id)
+                {
+                    case 62575:
+                    default:
+                        damage = 2000;
+                        break;
+                }
+
+                if(caster->isCharmed())
+                {
+                    if(Unit* rider = caster->GetCharmer())
+                        rider->CastSpell(target, SPELL_SHIELD_BREAKER_VISUAL, true);
+                }
+                else
+                    caster->CastSpell(target, SPELL_SHIELD_BREAKER_VISUAL, true);
+
+                if(Aura* defend = GetTargetUnit()->GetAura(SPELL_DEFEND))
+                    damage -= (damage*(0.3f * defend->GetStackAmount())-1);
+
+                // Deal the damage and show it on caster's log
+                caster->DealDamage(target, damage, NULL, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL);
+                caster->SendSpellNonMeleeDamageLog(target, GetSpellInfo()->Id, damage, SPELL_SCHOOL_MASK_NORMAL, 0, 0, true, 0);
+
+                // Drop 1 charge of defend from the target
+                if(Aura* defend = GetTargetUnit()->GetAura(SPELL_DEFEND))
+                    defend->ModStackAmount(-1);
+
+                handled = true;
+            }
+            void Register()
+            {
+                BeforeHit += SpellHitFn(spell_toc5_shield_breakerSpellScript::HandleBeforeHit);
+            }
+        };
+
+        SpellScript *GetSpellScript() const
+        {
+            return new spell_toc5_shield_breakerSpellScript();
+        }
+};
+
 class player_hex_mendingAI : public PlayerAI
 {
     public:
@@ -990,5 +1248,10 @@ void AddSC_boss_grand_champions()
     new boss_shaman_toc5();
     new boss_hunter_toc5();
     new boss_rouge_toc5();
+    new spell_toc5_ride_mount();
+    new spell_toc5_defend();
+    new spell_toc5_defend_visual();
+    new spell_toc5_charge();
+    new spell_toc5_shield_breaker();
     new spell_toc5_hex_mending();
 }

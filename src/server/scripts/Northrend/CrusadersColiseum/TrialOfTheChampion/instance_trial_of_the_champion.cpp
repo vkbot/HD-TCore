@@ -58,6 +58,7 @@ public:
         uint64 uiArgentChampionGUID;
 
         std::list<uint64> VehicleList;
+        uint32 TeamInInstance;
 
         std::string str_data;
 
@@ -83,7 +84,7 @@ public:
             bDone = false;
 
             VehicleList.clear();
-
+            TeamInInstance = 0;
             memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
         }
 
@@ -101,7 +102,6 @@ public:
         void OnCreatureCreate(Creature* creature)
         {
             Map::PlayerList const &players = instance->GetPlayers();
-            uint32 TeamInInstance = 0;
 
             if (!players.isEmpty())
             {
@@ -237,6 +237,7 @@ public:
                 case BOSS_ARGENT_CHALLENGE_P: return m_auiEncounter[2];
                 case BOSS_BLACK_KNIGHT: return m_auiEncounter[3];
 
+                case DATA_TEAM: return TeamInInstance;
                 case DATA_MOVEMENT_DONE: return uiMovementDone;
                 case DATA_ARGENT_SOLDIER_DEFEATED: return uiArgentSoldierDeaths;
             }

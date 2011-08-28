@@ -167,6 +167,7 @@ public:
         {
             switch(me->GetEntry())
             {
+                // Alliance
                 case NPC_STORMWIND_CHAMPION:  return 28912;
                 case NPC_IRONFORGE_CHAMPION:  return 29258;
                 case NPC_GNOMEREGAN_CHAMPION: return 28571;
@@ -177,6 +178,17 @@ public:
                 case NPC_MOUNTED_COLOSOS:     return 29255;
                 case NPC_MOUNTED_JAELYNE:     return 9991;
                 case NPC_MOUNTED_LANA:        return 2787;
+                // Horde
+                case NPC_ORGRIMMAR_CHAMPION:     return 29260;
+                case NPC_THUNDER_BLUFF_CHAMPION: return 29259;
+                case NPC_UNDERCITY_CHAMPION:     return 29257;
+                case NPC_SENJIN_CHAMPION:        return 29261;
+                case NPC_SILVERMOON_CHAMPION:    return 29262;
+                case NPC_MOUNTED_MOKRA:          return 29879;
+                case NPC_MOUNTED_ERESSEA:        return 28607;
+                case NPC_MOUNTED_RUNOK:          return 29880;
+                case NPC_MOUNTED_ZULTORE:        return 29261;
+                case NPC_MOUNTED_VISCERI:        return 10718;
             }
             return 0;
         }

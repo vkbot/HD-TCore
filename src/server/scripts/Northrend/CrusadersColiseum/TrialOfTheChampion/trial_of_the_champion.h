@@ -25,6 +25,7 @@ enum eData
     BOSS_ARGENT_CHALLENGE_E,
     BOSS_ARGENT_CHALLENGE_P,
     BOSS_BLACK_KNIGHT,
+    DATA_TEAM,
     DATA_MOVEMENT_DONE,
     DATA_LESSER_CHAMPIONS_DEFEATED,
     DATA_START,
@@ -51,10 +52,15 @@ enum eNpcs
 {
     // Horde Champions
     NPC_MOKRA                   = 35572,
+    NPC_MOUNTED_MOKRA           = 355720,
     NPC_ERESSEA                 = 35569,
+    NPC_MOUNTED_ERESSEA         = 355690,
     NPC_RUNOK                   = 35571,
+    NPC_MOUNTED_RUNOK           = 355710,
     NPC_ZULTORE                 = 35570,
+    NPC_MOUNTED_ZULTORE         = 355700,
     NPC_VISCERI                 = 35617,
+    NPC_MOUNTED_VISCERI         = 356170,
 
     // Alliance Champions
     NPC_JACOB                   = 34705,
@@ -74,6 +80,13 @@ enum eNpcs
     NPC_GNOMEREGAN_CHAMPION     = 35331,
     NPC_DARNASSUS_CHAMPION      = 35332,
     NPC_EXODAR_CHAMPION         = 35330,
+
+    // Horde Pre-Champs
+    NPC_ORGRIMMAR_CHAMPION      = 35314,
+    NPC_THUNDER_BLUFF_CHAMPION  = 35325,
+    NPC_UNDERCITY_CHAMPION      = 35327,
+    NPC_SENJIN_CHAMPION         = 35323,
+    NPC_SILVERMOON_CHAMPION     = 35326,
 
     NPC_EADRIC                  = 35119,
     NPC_PALETRESS               = 34928,

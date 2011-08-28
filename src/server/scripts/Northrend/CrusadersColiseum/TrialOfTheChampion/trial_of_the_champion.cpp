@@ -610,12 +610,22 @@ public:
 
         void SetGrandChampionsForEncounter()
         {
-            bossEntry[0] = RAND(NPC_MOUNTED_JACOB, NPC_MOUNTED_AMBROSE, NPC_MOUNTED_COLOSOS, NPC_MOUNTED_JAELYNE, NPC_MOUNTED_LANA);
+            if(pInstance->GetData(DATA_TEAM) == HORDE)
+                bossEntry[0] = RAND(NPC_MOUNTED_JACOB, NPC_MOUNTED_AMBROSE, NPC_MOUNTED_COLOSOS, NPC_MOUNTED_JAELYNE, NPC_MOUNTED_LANA);
+            else
+                bossEntry[0] = RAND(NPC_MOUNTED_MOKRA, NPC_MOUNTED_ERESSEA, NPC_MOUNTED_RUNOK, NPC_MOUNTED_ZULTORE, NPC_MOUNTED_VISCERI);
 
             while (bossEntry[1] == bossEntry[0] || bossEntry[2] == bossEntry[0] || bossEntry[2] == bossEntry[1])
             {
-                bossEntry[1] = RAND(NPC_MOUNTED_JACOB, NPC_MOUNTED_AMBROSE, NPC_MOUNTED_COLOSOS, NPC_MOUNTED_JAELYNE, NPC_MOUNTED_LANA);
-                bossEntry[2] = RAND(NPC_MOUNTED_JACOB, NPC_MOUNTED_AMBROSE, NPC_MOUNTED_COLOSOS, NPC_MOUNTED_JAELYNE, NPC_MOUNTED_LANA);
+                if(pInstance->GetData(DATA_TEAM) == HORDE)
+                {
+                    bossEntry[1] = RAND(NPC_MOUNTED_JACOB, NPC_MOUNTED_AMBROSE, NPC_MOUNTED_COLOSOS, NPC_MOUNTED_JAELYNE, NPC_MOUNTED_LANA);
+                    bossEntry[2] = RAND(NPC_MOUNTED_JACOB, NPC_MOUNTED_AMBROSE, NPC_MOUNTED_COLOSOS, NPC_MOUNTED_JAELYNE, NPC_MOUNTED_LANA);
+                }else
+                {
+                    bossEntry[1] = RAND(NPC_MOUNTED_MOKRA, NPC_MOUNTED_ERESSEA, NPC_MOUNTED_RUNOK, NPC_MOUNTED_ZULTORE, NPC_MOUNTED_VISCERI);
+                    bossEntry[2] = RAND(NPC_MOUNTED_MOKRA, NPC_MOUNTED_ERESSEA, NPC_MOUNTED_RUNOK, NPC_MOUNTED_ZULTORE, NPC_MOUNTED_VISCERI);
+                }
             }
         }
 
@@ -628,6 +638,7 @@ public:
         {
             switch(bossId)
             {
+                // Alliance
                 case NPC_JACOB:
                 case NPC_MOUNTED_JACOB:
                     return NPC_STORMWIND_CHAMPION;
@@ -643,6 +654,22 @@ public:
                 case NPC_LANA:
                 case NPC_MOUNTED_LANA:
                     return NPC_IRONFORGE_CHAMPION;
+                // Horde
+                case NPC_MOKRA:
+                case NPC_MOUNTED_MOKRA:
+                    return NPC_ORGRIMMAR_CHAMPION;
+                case NPC_ERESSEA:
+                case NPC_MOUNTED_ERESSEA:
+                    return NPC_SILVERMOON_CHAMPION;
+                case NPC_RUNOK:
+                case NPC_MOUNTED_RUNOK:
+                    return NPC_THUNDER_BLUFF_CHAMPION;
+                case NPC_ZULTORE:
+                case NPC_MOUNTED_ZULTORE:
+                    return NPC_SENJIN_CHAMPION;
+                case NPC_VISCERI:
+                case NPC_MOUNTED_VISCERI:
+                    return NPC_UNDERCITY_CHAMPION;
             }
             return 0;
         }
@@ -651,6 +678,7 @@ public:
         {
             switch(mountedBossID)
             {
+                // Alliance
                 case NPC_MOUNTED_JACOB:
                     return NPC_JACOB;
                 case NPC_MOUNTED_AMBROSE:
@@ -661,6 +689,17 @@ public:
                     return NPC_JAELYNE;
                 case NPC_MOUNTED_LANA:
                     return NPC_LANA;
+                // Horde
+                case NPC_MOUNTED_MOKRA:
+                    return NPC_MOKRA;
+                case NPC_MOUNTED_ERESSEA:
+                    return NPC_ERESSEA;
+                case NPC_MOUNTED_RUNOK:
+                    return NPC_RUNOK;
+                case NPC_MOUNTED_ZULTORE:
+                    return NPC_ZULTORE;
+                case NPC_MOUNTED_VISCERI:
+                    return NPC_VISCERI;
             }
 
             return 0;

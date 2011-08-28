@@ -240,6 +240,43 @@ public:
     }
 };
 
+class spell_paletress_shield : public SpellScriptLoader
+{
+    public:
+        spell_paletress_shield() : SpellScriptLoader("spell_paletress_shield") { }
+
+        class spell_paletress_shieldAuraScript : public AuraScript
+        {
+            PrepareAuraScript(spell_paletress_shieldAuraScript);
+
+            void HandleOnEffectAbsorb(AuraEffect* /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
+            {
+                Unit* caster = GetCaster();
+                Unit* attacker = dmgInfo.GetAttacker();
+
+                if(!caster || !attacker)
+                    return;
+
+                absorbAmount = dmgInfo.GetDamage();
+                // Deal the damage and show it on caster's log
+                caster->DealDamage(attacker, absorbAmount*0.25f, NULL, dmgInfo.GetDamageType(), dmgInfo.GetSchoolMask());
+                caster->SendSpellNonMeleeDamageLog(attacker, GetSpellInfo()->Id, absorbAmount*0.25f,  dmgInfo.GetSchoolMask(), 0, 0, true, 0);
+            }
+
+            // function registering
+            void Register()
+            {
+                OnEffectAbsorb += AuraEffectAbsorbFn(spell_paletress_shieldAuraScript::HandleOnEffectAbsorb, EFFECT_0);
+            }
+        };
+
+        // function which creates AuraScript
+        AuraScript* GetAuraScript() const
+        {
+            return new spell_paletress_shieldAuraScript();
+        }
+};
+
 class boss_paletress : public CreatureScript
 {
 public:
@@ -591,6 +628,7 @@ void AddSC_boss_argent_challenge()
     new spell_eadric_radiance();
     new spell_eadric_hammer_of_righteous();
     new boss_paletress();
+    new spell_paletress_shield();
     new npc_memory();
     new npc_argent_soldier();
 }

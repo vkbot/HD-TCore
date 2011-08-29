@@ -1124,6 +1124,15 @@ public:
                                     case 2: boss->GetMotionMaster()->MoveFollow(me->GetCreature(*me, bossGUID[0]), 5.0f, (M_PI / 2 + M_PI) - 0.5f); break;
                                 }
                             }
+
+                            uint32 data = 0;
+                            switch (i)
+                            {
+                                case 0: data = DATA_GRAND_CHAMPION_1; break;
+                                case 1: data = DATA_GRAND_CHAMPION_2; break;
+                                case 2: data = DATA_GRAND_CHAMPION_3; break;
+                            }
+                            pInstance->SetData(data, bossEntry[i]);
                         }
                         events.ScheduleEvent(3, 2000);
                         break;

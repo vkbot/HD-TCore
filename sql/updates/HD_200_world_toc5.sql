@@ -26,3 +26,8 @@ INSERT INTO `achievement_criteria_data` VALUES
 (12320, 18, 0, 0, ''),
 (12321, 18, 0, 0, ''),
 (12322, 18, 0, 0, '');
+
+-- Script Names for ArgentSoilders
+UPDATE creature_template SET ScriptName = 'npc_argent_monk' WHERE entry = 35305;
+UPDATE creature_template SET ScriptName = 'npc_argent_lightwielder' WHERE entry = 35309;
+UPDATE creature_template SET ScriptName = 'npc_argent_priest' WHERE entry = 35307;

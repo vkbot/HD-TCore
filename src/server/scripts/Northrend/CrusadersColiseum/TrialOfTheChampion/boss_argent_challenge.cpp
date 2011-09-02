@@ -18,7 +18,7 @@
 /* ScriptData
 SDName: Argent Challenge Encounter.
 SD%Complete: 50 %
-SDComment: AI for Argent Soldiers are not implemented. AI from bosses need more improvements.
+SDComment: AI from bosses need more improvements.
 SDCategory: Trial of the Champion
 EndScriptData */
 
@@ -26,8 +26,27 @@ EndScriptData */
 #include "trial_of_the_champion.h"
 #include "ScriptedEscortAI.h"
 
-enum eSpells
+enum Spells
 {
+    // Argent Soldiers
+    SPELL_KNEE                  = 68442,
+    // Monk
+    SPELL_DIVINE_SHIELD         = 67251,
+    SPELL_FINAL_MEDITATION      = 67255,
+    SPELL_FLURRY_OF_BLOWS       = 67233,
+    SPELL_PUMMEL                = 67235,
+    // Lightwielder
+    SPELL_BLAZING_LIGHT         = 67247,
+    SPELL_CLEAVE                = 15284,
+    SPELL_UNBALANCING_STRIKE    = 67237,
+    // Priest
+    SPELL_HOLY_SMITE            = 36176,
+    SPELL_HOLY_SMITE_H          = 67289,
+    SPELL_SHADOW_WORD_PAIN      = 34941,
+    SPELL_SHADOW_WORD_PAIN_H    = 34942,
+    SPELL_MIND_CONTROL          = 67229,
+    SPELL_FOUNTAIN_OF_LIGHT     = 67194,
+
     //Eadric
     SPELL_EADRIC_ACHIEVEMENT    = 68197,
     SPELL_HAMMER_JUSTICE        = 66863,
@@ -506,119 +525,276 @@ public:
     }
 };
 
-class npc_argent_soldier : public CreatureScript
+class npc_argent_monk : public CreatureScript
 {
 public:
-    npc_argent_soldier() : CreatureScript("npc_argent_soldier") { }
+    npc_argent_monk() : CreatureScript("npc_argent_monk") { }
 
-    // THIS AI NEEDS MORE IMPROVEMENTS
-    struct npc_argent_soldierAI : public npc_escortAI
+    struct npc_argent_monkAI : public ScriptedAI
     {
-        npc_argent_soldierAI(Creature* creature) : npc_escortAI(creature)
+        npc_argent_monkAI(Creature* creature) : ScriptedAI(creature) {}
+
+        uint32 timerFlurryBlows;
+        uint32 timerPummel;
+        bool shieldCasted;
+        bool defeated;
+
+        void Reset()
         {
-            pInstance = creature->GetInstanceScript();
-            me->SetReactState(REACT_DEFENSIVE);
-            SetDespawnAtEnd(false);
-            uiWaypoint = 0;
+            timerFlurryBlows = 2000;
+            timerPummel = 1000;
+            shieldCasted = false;
+            defeated = false;
         }
 
-        InstanceScript* pInstance;
-
-        uint8 uiWaypoint;
-
-        void WaypointReached(uint32 uiPoint)
+        uint32 GetData(uint32 type)
         {
-            if (uiPoint == 0)
-            {
-                switch(uiWaypoint)
-                {
-                    case 0:
-                        me->SetOrientation(5.81f);
-                        break;
-                    case 1:
-                        me->SetOrientation(4.60f);
-                        break;
-                    case 2:
-                        me->SetOrientation(2.79f);
-                        break;
-                }
+            if(type == DATA_CHAMPION_DEFEATED)
+                return defeated ? 1 : 0;
 
-                me->SendMovementFlagUpdate();
+            return 0;
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32 & damage)
+        {
+            if(defeated)
+            {
+                damage = 0;
+                return;
+            }
+
+            if(damage >= me->GetHealth() && !shieldCasted)
+            {
+                damage = 0;
+                DoCast(me, SPELL_DIVINE_SHIELD);
+                DoCastAOE(SPELL_FINAL_MEDITATION);
+                shieldCasted = true;
+            }else if(shieldCasted)
+            {
+                damage = 0;
+                defeated = true;
+                me->GetMotionMaster()->MoveIdle();
+                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetTarget(0);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
         }
 
-        void SetData(uint32 uiType, uint32 /*uiData*/)
+        void UpdateAI(const uint32 diff)
         {
-            switch(me->GetEntry())
-            {
-                case NPC_ARGENT_LIGHWIELDER:
-                    switch(uiType)
-                    {
-                        case 0:
-                            AddWaypoint(0, 712.14f, 628.42f, 411.88f);
-                            break;
-                        case 1:
-                            AddWaypoint(0, 742.44f, 650.29f, 411.79f);
-                            break;
-                        case 2:
-                            AddWaypoint(0, 783.33f, 615.29f, 411.84f);
-                            break;
-                    }
-                    break;
-                case NPC_ARGENT_MONK:
-                    switch(uiType)
-                    {
-                        case 0:
-                            AddWaypoint(0, 713.12f, 632.97f, 411.90f);
-                            break;
-                        case 1:
-                            AddWaypoint(0, 746.73f, 650.24f, 411.56f);
-                            break;
-                        case 2:
-                            AddWaypoint(0, 781.32f, 610.54f, 411.82f);
-                            break;
-                    }
-                    break;
-                case NPC_PRIESTESS:
-                    switch(uiType)
-                    {
-                        case 0:
-                            AddWaypoint(0, 715.06f, 637.07f, 411.91f);
-                            break;
-                        case 1:
-                            AddWaypoint(0, 750.72f, 650.20f, 411.77f);
-                            break;
-                        case 2:
-                            AddWaypoint(0, 779.77f, 607.03f, 411.81f);
-                            break;
-                    }
-                    break;
-            }
-
-            Start(false, true, 0);
-            uiWaypoint = uiType;
-        }
-
-        void UpdateAI(const uint32 uiDiff)
-        {
-            npc_escortAI::UpdateAI(uiDiff);
-
             if (!UpdateVictim())
                 return;
 
-            DoMeleeAttackIfReady();
-        }
+            if(defeated)
+                return;
 
-        void JustDied(Unit* /*killer*/)
-        {
-            if (pInstance)
-                pInstance->SetData(DATA_ARGENT_SOLDIER_DEFEATED, pInstance->GetData(DATA_ARGENT_SOLDIER_DEFEATED) + 1);
+            if (timerFlurryBlows <= diff)
+            {
+                DoCast(me, SPELL_FLURRY_OF_BLOWS);
+                timerFlurryBlows = urand(7000, 10000);
+            }else timerFlurryBlows -= diff;
+
+            if (timerPummel <= diff)
+            {
+                DoCastVictim(SPELL_PUMMEL);
+                timerPummel = urand(3000, 6000);
+            }else timerPummel -= diff;
+
+            DoMeleeAttackIfReady();
         }
     };
 
     CreatureAI* GetAI(Creature* creature) const
     {
-        return new npc_argent_soldierAI(creature);
+        return new npc_argent_monkAI(creature);
+    }
+};
+
+class npc_argent_lightwielder : public CreatureScript
+{
+public:
+    npc_argent_lightwielder() : CreatureScript("npc_argent_lightwielder") { }
+
+    struct npc_argent_lightwielderAI : public ScriptedAI
+    {
+        npc_argent_lightwielderAI(Creature* creature) : ScriptedAI(creature) {}
+
+        uint32 timerBlazingLight;
+        uint32 timerCleave;
+        uint32 timerUnbalancingStrike;
+        bool defeated;
+
+        void Reset()
+        {
+            timerBlazingLight = 5000;
+            timerCleave = 2000;
+            timerUnbalancingStrike = 3000;
+            defeated = false;
+        }
+
+        uint32 GetData(uint32 type)
+        {
+            if(type == DATA_CHAMPION_DEFEATED)
+                return defeated ? 1 : 0;
+
+            return 0;
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32 & damage)
+        {
+            if(defeated)
+            {
+                damage = 0;
+                return;
+            }
+
+            if(damage >= me->GetHealth())
+            {
+                damage = 0;
+                defeated = true;
+                me->GetMotionMaster()->MoveIdle();
+                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetTarget(0);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            }
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+
+            if(defeated)
+                return;
+
+            if(me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+            if (timerBlazingLight <= diff)
+            {
+                Unit* target = DoSelectLowestHpFriendly(40);
+
+                if(target->GetHealth() > me->GetHealth())
+                    target = me;
+
+                DoCast(target, SPELL_BLAZING_LIGHT);
+                timerBlazingLight = urand(8000, 10000);
+            }else timerBlazingLight -= diff;
+
+            if (timerCleave <= diff)
+            {
+                DoCastVictim(SPELL_CLEAVE);
+                timerCleave = urand(7000, 8500);
+            }else timerCleave -= diff;
+
+            if (timerUnbalancingStrike <= diff)
+            {
+                DoCastVictim(SPELL_UNBALANCING_STRIKE);
+                timerUnbalancingStrike = urand(3000, 6000);
+            }else timerUnbalancingStrike -= diff;
+
+            DoMeleeAttackIfReady();
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_argent_lightwielderAI(creature);
+    }
+};
+
+class npc_argent_priest : public CreatureScript
+{
+public:
+    npc_argent_priest() : CreatureScript("npc_argent_priest") { }
+
+    struct npc_argent_priestAI : public ScriptedAI
+    {
+        npc_argent_priestAI(Creature* creature) : ScriptedAI(creature) {}
+
+        uint32 timerMindControl;
+        uint32 timerShadowWord;
+        uint32 timerFountain;
+        bool defeated;
+
+        void Reset()
+        {
+            timerMindControl = 7000;
+            timerShadowWord = 2000;
+            timerFountain = 9000;
+            defeated = false;
+        }
+
+        uint32 GetData(uint32 type)
+        {
+            if(type == DATA_CHAMPION_DEFEATED)
+                return defeated ? 1 : 0;
+
+            return 0;
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32 & damage)
+        {
+            if(defeated)
+            {
+                damage = 0;
+                return;
+            }
+
+            if(damage >= me->GetHealth())
+            {
+                damage = 0;
+                defeated = true;
+                me->GetMotionMaster()->MoveIdle();
+                me->CastSpell(me, SPELL_KNEE, true);
+                me->SetTarget(0);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            }
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            if (!UpdateVictim())
+                return;
+
+            if(defeated)
+                return;
+
+            if(me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+            if (timerFountain <= diff)
+            {
+                DoCast(me, SPELL_FOUNTAIN_OF_LIGHT);
+                timerFountain = urand(40000, 45000);
+            }else timerFountain -= diff;
+
+            if (timerMindControl <= diff)
+            {
+                if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
+                    DoCast(target, SPELL_MIND_CONTROL);
+                timerMindControl = urand(12000, 16000);
+                return;
+            }else timerMindControl -= diff;
+
+            if (timerShadowWord <= diff)
+            {
+                if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
+                    if(!target->HasAura(IsHeroic() ? SPELL_SHADOW_WORD_PAIN_H : SPELL_SHADOW_WORD_PAIN))
+                        DoCast(target, IsHeroic() ? SPELL_SHADOW_WORD_PAIN_H : SPELL_SHADOW_WORD_PAIN);
+                timerShadowWord = urand(3000, 5000);
+            }else timerShadowWord -= diff;
+
+            if(Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
+                DoCast(target, IsHeroic() ? SPELL_HOLY_SMITE_H : SPELL_HOLY_SMITE);
+
+            DoMeleeAttackIfReady();
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_argent_priestAI(creature);
     }
 };
 
@@ -630,5 +806,7 @@ void AddSC_boss_argent_challenge()
     new boss_paletress();
     new spell_paletress_shield();
     new npc_memory();
-    new npc_argent_soldier();
+    new npc_argent_monk();
+    new npc_argent_lightwielder();
+    new npc_argent_priest();
 }

@@ -57,3 +57,21 @@ UPDATE creature_template SET ScriptName = 'npc_argent_monk' WHERE entry = 35305;
 UPDATE creature_template SET ScriptName = 'npc_argent_lightwielder' WHERE entry = 35309;
 UPDATE creature_template SET ScriptName = 'npc_argent_priest' WHERE entry = 35307;
 UPDATE `creature_template` SET `mechanic_immune_mask` = '650854267' WHERE `entry` IN (35305, 35309, 35307, 12488, 12439, 12448);
+
+-- Memories equip templates
+UPDATE `creature_template` SET `equipment_id` = 22 WHERE `entry` = 34942;
+UPDATE `creature_template` SET `equipment_id` = 1431 WHERE `entry` = 35028;
+UPDATE `creature_template` SET `equipment_id` = 1178 WHERE `entry` = 35030;
+UPDATE `creature_template` SET `equipment_id` = 1330 WHERE `entry` = 35031;
+UPDATE `creature_template` SET `equipment_id` = 1808 WHERE `entry` = 35036;
+UPDATE `creature_template` SET `equipment_id` = 1496 WHERE `entry` = 35037;
+UPDATE `creature_template` SET `equipment_id` = 2216 WHERE `entry` = 35042;
+UPDATE `creature_template` SET `equipment_id` = 714 WHERE `entry` = 35045;
+UPDATE `creature_template` SET `equipment_id` = 271 WHERE `entry` = 35049;
+-- Argent Champions equip templates
+UPDATE `creature_template` SET `equipment_id` = 19661 WHERE `entry` = 35309;
+DELETE FROM `creature_equip_template` WHERE (`entry`=19661);
+INSERT INTO `creature_equip_template` (`entry`, `itemEntry1`, `itemEntry2`, `itemEntry3`) VALUES (19661, 44244, 0, 0);
+UPDATE `creature_template` SET `equipment_id` = 19662 WHERE `entry` = 35307;
+DELETE FROM `creature_equip_template` WHERE (`entry`=19662);
+INSERT INTO `creature_equip_template` (`entry`, `itemEntry1`, `itemEntry2`, `itemEntry3`) VALUES (19662, 25935, 0, 0);

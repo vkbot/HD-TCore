@@ -48,13 +48,14 @@ enum Spells
     SPELL_FOUNTAIN_OF_LIGHT     = 67194,
 
     //Eadric
-    SPELL_EADRIC_ACHIEVEMENT    = 68197,
+    SPELL_EADRIC_ACHIEVEMENT    = 68197, // Faceroller achievement
     SPELL_HAMMER_JUSTICE        = 66863,
     SPELL_HAMMER_RIGHTEOUS      = 66867,
     SPELL_RADIANCE              = 66935,
     SPELL_VENGEANCE             = 66865,
     // Necessary for the achievement
-    SPELL_HAMMER_RIGHTEOUS_P    = 66904,
+    SPELL_HAMMER_RIGHTEOUS_P    = 66904, // Aura on player, changes to a stance with the spell
+    SPELL_HAMMER_RIGHTEOUS_RET  = 66905, // Casted by player to Eadric
     SPELL_HAMMER_JUSTICE_STUN   = 66940,
 
     //Paletress
@@ -176,6 +177,16 @@ public:
             hammerJusticeTimer = 25000;
 
             defeated = false;
+        }
+
+        void SpellHit(Unit* /*caster*/, const SpellInfo *spell)
+        {
+            // Faceroller achievement
+            if(IsHeroic())
+                if(spell->Id == SPELL_HAMMER_RIGHTEOUS_RET)
+                    if(me->GetHealth() <= (uint32)spell->Effects[0].BasePoints)
+                        if(InstanceScript* instance = me->GetInstanceScript())
+                            instance->DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_EADRIC_ACHIEVEMENT);
         }
 
         void DamageTaken(Unit* /*attacker*/, uint32 & damage)
@@ -331,8 +342,7 @@ public:
             defeated = false;
 
             if (Creature* memory = Unit::GetCreature(*me, memoryGUID))
-                if (memory->isAlive())
-                    memory->RemoveFromWorld();
+                memory->DespawnOrUnsummon(1000);
         }
 
         void SetData(uint32 id, uint32 /*value*/)
@@ -360,8 +370,7 @@ public:
                 me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
                 if (Creature* memory = Unit::GetCreature(*me, memoryGUID))
-                    if (memory->isAlive())
-                        memory->RemoveFromWorld();
+                    memory->DespawnOrUnsummon(1000);
             }
         }
 

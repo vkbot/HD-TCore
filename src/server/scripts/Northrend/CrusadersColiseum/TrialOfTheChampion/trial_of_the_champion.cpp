@@ -42,11 +42,17 @@ EndContentData */
 const Position SpawnPosition = {746.261f, 657.401f, 411.681f, 4.65f};
 const Position OutStadiumPosition = {747.03f, 687.483f, 412.373f, 1.53475f};
 const Position AnnouncerPosition = {733.877f, 662.269f, 412.393f, 4.61586f};
-const Position IntroPosition[3] =
+const Position FactionChampionPosition[3] =
 {
-    {724.854f, 640.344f, 411.829f, 5.60704f}, // Boss
-    {714.172f, 618.206f, 411.604f, 0.0f},     // Boss
-    {724.300f, 595.99f, 411.568f, 0.819248f}  // Boss
+    {724.854f, 640.344f, 411.829f, 5.60704f},
+    {714.172f, 618.206f, 411.604f, 0.0f},
+    {724.300f, 595.990f, 411.568f, 0.819248f}
+};
+const Position ArgentSoldierPosition[3] =
+{
+    {746.562f, 634.195f, 411.574f, 4.84441f},
+    {735.675f, 629.715f, 411.575f, 5.64316f},
+    {758.941f, 629.647f, 411.574f, 4.08415f}
 };
 
 //class npc_announcer_toc5 : public CreatureScript
@@ -512,35 +518,13 @@ const Position IntroPosition[3] =
 //    }
 //};
 
-enum AllianceRaces
-{
-    HUMAN = 0,
-    GNOME,
-    DRAWF,
-    NIGHT_ELF,
-    DRANEI,
-};
-
-enum HordeRaces
-{
-    ORC = 0,
-    TROLL,
-    UNDEAD,
-    TAUREN,
-    BLOOD_ELF,
-};
-
-enum Data
-{
-    DATA_INTRO = 0,
-    DATA_MAX,
-};
-
 enum AnnouncerPhases
 {
     EVENT_INTRO = 0, // Presentation of champions
     EVENT_WAVES,
     EVENT_CHAMPIONS,
+    EVENT_INTRO_ARGENT,
+    EVENT_WAVES_ARGENT,
     EVENTS_MAX,
 };
 //uint32 Alliance 
@@ -600,8 +584,14 @@ public:
         void SetData(uint32 type, uint32 data)
         {
             eventIds[type] = data;
-            if(data == IN_PROGRESS)
+            if(data == DONE)
             {
+                if (GameObject* pGO = GameObject::GetGameObject(*me, pInstance->GetData64(DATA_PORTCULLIS)))
+                    pInstance->HandleGameObject(pGO->GetGUID(), true);
+            } else if(data == IN_PROGRESS)
+            {
+                if (GameObject* pGO = GameObject::GetGameObject(*me, pInstance->GetData64(DATA_PORTCULLIS)))
+                    pInstance->HandleGameObject(pGO->GetGUID(), false);
                 events.ScheduleEvent(1, 0);
                 if(type == EVENT_INTRO)
                     SetGrandChampionsForEncounter();
@@ -751,7 +741,7 @@ public:
                     case 3:
                         // Move first boss to the new position
                         if(Creature* boss1 = me->GetCreature(*me, bossGUID[0]))
-                            boss1->GetMotionMaster()->MovePoint(0, IntroPosition[0]);
+                            boss1->GetMotionMaster()->MovePoint(0, FactionChampionPosition[0]);
 
                         events.ScheduleEvent(4, 4000);
                         break;
@@ -805,11 +795,11 @@ public:
                     case 6:
                         // Move first boss to the new position
                         if(Creature* boss1 = me->GetCreature(*me, bossGUID[0]))
-                            boss1->GetMotionMaster()->MovePoint(0, IntroPosition[1]);
+                            boss1->GetMotionMaster()->MovePoint(0, FactionChampionPosition[1]);
 
                         // Move second boss to the new position
                         if(Creature* boss2 = me->GetCreature(*me, bossGUID[1]))
-                            boss2->GetMotionMaster()->MovePoint(0, IntroPosition[0]);
+                            boss2->GetMotionMaster()->MovePoint(0, FactionChampionPosition[0]);
 
                         events.ScheduleEvent(7, 4000);
                         break;
@@ -863,15 +853,15 @@ public:
                     case 9:
                         // Move first boss to the new position
                         if(Creature* boss1 = me->GetCreature(*me, bossGUID[0]))
-                            boss1->GetMotionMaster()->MovePoint(0, IntroPosition[2]);
+                            boss1->GetMotionMaster()->MovePoint(0, FactionChampionPosition[2]);
 
                         // Move second boss to the new position
                         if(Creature* boss2 = me->GetCreature(*me, bossGUID[1]))
-                            boss2->GetMotionMaster()->MovePoint(0, IntroPosition[1]);
+                            boss2->GetMotionMaster()->MovePoint(0, FactionChampionPosition[1]);
 
                         // Move third boss to the new position
                         if(Creature* boss2 = me->GetCreature(*me, bossGUID[2]))
-                            boss2->GetMotionMaster()->MovePoint(0, IntroPosition[0]);
+                            boss2->GetMotionMaster()->MovePoint(0, FactionChampionPosition[0]);
 
                         events.ScheduleEvent(10, 4000);
                         break;
@@ -1169,7 +1159,405 @@ public:
                                 boss->GetMotionMaster()->MovePoint(0, OutStadiumPosition);
                                 boss->DespawnOrUnsummon(4000);
                             }
+                        SetData(EVENT_CHAMPIONS, DONE);
                         pInstance->SetData(BOSS_GRAND_CHAMPIONS, DONE);
+                        break;
+                }
+            }
+
+            if(GetData(EVENT_INTRO_ARGENT) == IN_PROGRESS)
+            {
+                switch(events.ExecuteEvent())
+                {
+                    case 1:
+                        // TODO: Intro texts
+                        // Open door
+                        if (GameObject* pGO = GameObject::GetGameObject(*me, pInstance->GetData64(DATA_MAIN_GATE)))
+                            pInstance->HandleGameObject(pGO->GetGUID(), true);
+                        events.ScheduleEvent(2, 2000);
+                        break;
+                    case 2:
+                        // Summon 1st wave
+                        // The main add will move, and the two other will only follow him
+                        if(Creature* mainAdd = me->SummonCreature(NPC_ARGENT_LIGHWIELDER, SpawnPosition))
+                        {
+                            addsGUID[0][0] = mainAdd->GetGUID();
+                            mainAdd->SetTarget(stalkerGUID);
+
+                            for (uint8 i = 0; i < 2; ++i)
+                            {
+                                uint32 addEntry = 0;
+                                switch(i)
+                                {
+                                    case 0: addEntry = NPC_ARGENT_MONK; break;
+                                    case 1: addEntry = NPC_ARGENT_PRIESTESS; break;
+                                }
+
+                                if(Creature* add = me->SummonCreature(addEntry, SpawnPosition, TEMPSUMMON_MANUAL_DESPAWN))
+                                {
+                                    add->SetTarget(stalkerGUID);
+                                    addsGUID[0][i+1] = add->GetGUID();
+                                    switch(i)
+                                    {
+                                        case 0: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2) + 0.5f); break;
+                                        case 1: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2 + M_PI) - 0.5f); break;
+                                    }
+                                }
+                            }
+                        }
+                        events.ScheduleEvent(3, 2000);
+                        break;
+                    case 3:
+                        // Move first wave to his position
+                        if(Creature* mainAdd1 = me->GetCreature(*me, addsGUID[0][0]))
+                            mainAdd1->GetMotionMaster()->MovePoint(0, ArgentSoldierPosition[0]);
+
+                        events.ScheduleEvent(4, 3000);
+                        break;
+                    case 4:
+                        // Refresh the adds position
+                        for(uint8 i=0; i<1; i++)
+                        {
+                            if(Creature* mainAdd = me->GetCreature(*me, addsGUID[i][0]))
+                            {
+                                mainAdd->SetFacingToObject(me);
+                                for(uint8 j = 0; j<3; j++)
+                                {
+                                    if(Creature* add = me->GetCreature(*me, addsGUID[i][j]))
+                                    {
+                                        switch(j)
+                                        {
+                                            case 1: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2) + 0.5f); break;
+                                            case 2: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2 + M_PI) - 0.5f); break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        events.ScheduleEvent(5, 3000);
+                        break;
+                    case 5:
+                        // Summon 2nd wave
+                        if(Creature* mainAdd = me->SummonCreature(NPC_ARGENT_LIGHWIELDER, SpawnPosition))
+                        {
+                            addsGUID[1][0] = mainAdd->GetGUID();
+                            mainAdd->SetTarget(stalkerGUID);
+
+                            for (uint8 i = 0; i < 2; ++i)
+                            {
+                                uint32 addEntry = 0;
+                                switch(i)
+                                {
+                                    case 0: addEntry = NPC_ARGENT_MONK; break;
+                                    case 1: addEntry = NPC_ARGENT_PRIESTESS; break;
+                                }
+
+                                if(Creature* add = me->SummonCreature(addEntry, SpawnPosition, TEMPSUMMON_MANUAL_DESPAWN))
+                                {
+                                    add->SetTarget(stalkerGUID);
+                                    addsGUID[1][i+1] = add->GetGUID();
+                                    switch(i)
+                                    {
+                                        case 0: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2) + 0.5f); break;
+                                        case 1: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2 + M_PI) - 0.5f); break;
+                                    }
+                                }
+                            }
+                        }
+                        events.ScheduleEvent(6, 5000);
+                        break;
+                    case 6:
+                        // Move first wave to the new position
+                        if(Creature* mainAdd1 = me->GetCreature(*me, addsGUID[0][0]))
+                            mainAdd1->GetMotionMaster()->MovePoint(0, ArgentSoldierPosition[1]);
+
+                        // Move second wave to the new position
+                        if(Creature* mainAdd2 = me->GetCreature(*me, addsGUID[1][0]))
+                            mainAdd2->GetMotionMaster()->MovePoint(0, ArgentSoldierPosition[0]);
+
+                        events.ScheduleEvent(7, 4000);
+                        break;
+                    case 7:
+                        // Refresh the adds position
+                        for(uint8 i=0; i<2; i++)
+                        {
+                            if(Creature* mainAdd = me->GetCreature(*me, addsGUID[i][0]))
+                            {
+                                mainAdd->SetFacingToObject(me);
+                                for(uint8 j = 0; j<3; j++)
+                                {
+                                    if(Creature* add = me->GetCreature(*me, addsGUID[i][j]))
+                                    {
+                                        switch(j)
+                                        {
+                                            case 1: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2) + 0.5f); break;
+                                            case 2: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2 + M_PI) - 0.5f); break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        events.ScheduleEvent(8, 4000);
+                        break;
+                    case 8:
+                        // Summon 3rd wave
+                        if(Creature* mainAdd = me->SummonCreature(NPC_ARGENT_LIGHWIELDER, SpawnPosition))
+                        {
+                            addsGUID[2][0] = mainAdd->GetGUID();
+                            mainAdd->SetTarget(stalkerGUID);
+
+                            for (uint8 i = 0; i < 2; ++i)
+                            {
+                                uint32 addEntry = 0;
+                                switch(i)
+                                {
+                                    case 0: addEntry = NPC_ARGENT_MONK; break;
+                                    case 1: addEntry = NPC_ARGENT_PRIESTESS; break;
+                                }
+
+                                if(Creature* add = me->SummonCreature(addEntry, SpawnPosition, TEMPSUMMON_MANUAL_DESPAWN))
+                                {
+                                    add->SetTarget(stalkerGUID);
+                                    addsGUID[2][i+1] = add->GetGUID();
+                                    switch(i)
+                                    {
+                                        case 0: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2) + 0.5f); break;
+                                        case 1: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2 + M_PI) - 0.5f); break;
+                                    }
+                                }
+                            }
+                        }
+                        events.ScheduleEvent(9, 4000);
+                        break;
+                    case 9:
+                        // Move second wave to the new position
+                        if(Creature* mainAdd2 = me->GetCreature(*me, addsGUID[1][0]))
+                            mainAdd2->GetMotionMaster()->MovePoint(0, ArgentSoldierPosition[2]);
+
+                        // Move third wave to the new position
+                        if(Creature* mainAdd3 = me->GetCreature(*me, addsGUID[2][0]))
+                            mainAdd3->GetMotionMaster()->MovePoint(0, ArgentSoldierPosition[0]);
+
+                        events.ScheduleEvent(10, 4000);
+                        break;
+                    case 10:
+                        // Refresh the adds position
+                        for(uint8 i=0; i<3; i++)
+                        {
+                            if(Creature* mainAdd = me->GetCreature(*me, addsGUID[i][0]))
+                            {
+                                mainAdd->SetFacingToObject(me);
+                                for(uint8 j = 0; j<3; j++)
+                                {
+                                    if(Creature* add = me->GetCreature(*me, addsGUID[i][j]))
+                                    {
+                                        switch(j)
+                                        {
+                                            case 1: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2) + 0.5f); break;
+                                            case 2: add->GetMotionMaster()->MoveFollow(mainAdd, 1.0f, (M_PI / 2 + M_PI) - 0.5f); break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        events.ScheduleEvent(11, 4000);
+                        break;
+                    case 11:
+                        // Summon the boss
+                        bool chance;
+                        chance = urand(0, 1);
+                        if(Creature* boss = me->SummonCreature(chance ? NPC_EADRIC : NPC_PALETRESS, SpawnPosition))
+                            bossGUID[0] = boss->GetGUID();
+                        events.ScheduleEvent(12, 4000);
+                        break;
+                    case 12:
+                        // Set home positions, in case of wipe, this avoids summons goin back to the SpawnPos
+                        if(Creature* boss = me->GetCreature(*me, bossGUID[0]))
+                            boss->SetHomePosition(boss->GetPositionX(), boss->GetPositionY(), boss->GetPositionZ(), boss->GetOrientation());
+
+                        for(uint8 i=0; i<3; i++)
+                            for(uint8 j=0; j<3; j++)
+                                if(Creature* add = me->GetCreature(*me, addsGUID[i][j]))
+                                {
+                                    add->SetFacingToObject(me);
+                                    add->SetHomePosition(add->GetPositionX(), add->GetPositionY(), add->GetPositionZ(), add->GetOrientation());
+                                }
+
+                        // Move to the door position
+                        me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                        me->GetMotionMaster()->MovePoint(0, AnnouncerPosition);
+                        me->SetTarget(stalkerGUID);
+                        events.ScheduleEvent(13, 19000);
+                        break;
+                    case 13:
+                        //Close Door
+                        if (GameObject* pGO = GameObject::GetGameObject(*me, pInstance->GetData64(DATA_MAIN_GATE)))
+                            pInstance->HandleGameObject(pGO->GetGUID(), false);
+
+                        events.Reset();
+                        SetData(EVENT_INTRO_ARGENT, DONE);
+                        SetData(EVENT_WAVES_ARGENT, IN_PROGRESS);
+                        break;
+                }
+            }
+
+            if(GetData(EVENT_WAVES_ARGENT) == IN_PROGRESS)
+            {
+                switch(events.ExecuteEvent())
+                {
+                    case 1:
+                        // Future texts?
+                        events.ScheduleEvent(2, 3000);
+                        break;
+                    case 2:
+                        // Start attack of first wave of adds
+                        if(!addsAttacking)
+                        {
+                            for(uint8 i=0; i<3; i++)
+                            {
+                                if(Creature* add = me->GetCreature(*me, addsGUID[0][i]))
+                                {
+                                    add->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                                    add->SetReactState(REACT_AGGRESSIVE);
+                                    add->setFaction(16);
+                                    AggroAllPlayers(add);
+                                }
+                            }
+                            addsAttacking = true;
+                            events.ScheduleEvent(2, 1000);
+                        } else // Wait for the death of all of them
+                        {
+                            defeatedCount = 0;
+                            for(uint8 i=0; i<3; i++)
+                                if(Creature* add = me->GetCreature(*me, addsGUID[0][i]))
+                                    if(add->AI()->GetData(DATA_CHAMPION_DEFEATED) == 1)
+                                        defeatedCount++;
+
+                            if(defeatedCount>=3)
+                            {
+                                defeatedCount = 0;
+                                addsAttacking = false;
+                                events.ScheduleEvent(3, 4000);
+                            } else
+                                events.ScheduleEvent(2, 1000);
+                        }
+                        break;
+                    case 3:
+                        // Despawn previous wave
+                        for(uint8 i=0; i<3; i++)
+                            if(Creature* add = me->GetCreature(*me, addsGUID[0][i]))
+                                add->DespawnOrUnsummon();
+
+                        // Start attack of second wave of adds
+                        if(!addsAttacking)
+                        {
+                            for(uint8 i=0; i<3; i++)
+                            {
+                                if(Creature* add = me->GetCreature(*me, addsGUID[1][i]))
+                                {
+                                    add->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                                    add->SetReactState(REACT_AGGRESSIVE);
+                                    add->setFaction(16);
+                                    AggroAllPlayers(add);
+                                }
+                            }
+                            addsAttacking = true;
+                            events.ScheduleEvent(3, 1000);
+                        } else // Wait for the death of all of them
+                        {
+                            defeatedCount = 0;
+                            for(uint8 i=0; i<3; i++)
+                                if(Creature* add = me->GetCreature(*me, addsGUID[1][i]))
+                                    if(add->AI()->GetData(DATA_CHAMPION_DEFEATED) == 1)
+                                        defeatedCount++;
+
+                            if(defeatedCount>=3)
+                            {
+                                defeatedCount = 0;
+                                addsAttacking = false;
+                                events.ScheduleEvent(4, 4000);
+                            } else
+                                events.ScheduleEvent(3, 1000);
+                        }
+                        break;
+                    case 4:
+                        // Despawn previous wave
+                        for(uint8 i=0; i<3; i++)
+                            if(Creature* add = me->GetCreature(*me, addsGUID[1][i]))
+                                add->DespawnOrUnsummon();
+
+                        // Start attack of third wave of adds
+                        if(!addsAttacking)
+                        {
+                            for(uint8 i=0; i<3; i++)
+                            {
+                                if(Creature* add = me->GetCreature(*me, addsGUID[2][i]))
+                                {
+                                    add->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                                    add->SetReactState(REACT_AGGRESSIVE);
+                                    add->setFaction(16);
+                                    AggroAllPlayers(add);
+                                }
+                            }
+                            addsAttacking = true;
+                            events.ScheduleEvent(4, 1000);
+                        } else // Wait for the death of all of them
+                        {
+                            defeatedCount = 0;
+                            for(uint8 i=0; i<3; i++)
+                                if(Creature* add = me->GetCreature(*me, addsGUID[2][i]))
+                                    if(add->AI()->GetData(DATA_CHAMPION_DEFEATED) == 1)
+                                        defeatedCount++;
+
+                            if(defeatedCount>=3)
+                            {
+                                defeatedCount = 0;
+                                addsAttacking = false;
+                                events.ScheduleEvent(5, 4000);
+                            } else
+                                events.ScheduleEvent(4, 1000);
+                        }
+                        break;
+                    case 5:
+                        // Despawn previous wave
+                        for(uint8 i=0; i<3; i++)
+                            if(Creature* add = me->GetCreature(*me, addsGUID[2][i]))
+                                add->DespawnOrUnsummon();
+
+                        // Prepare the Argent Champion for the fight
+                        if(!addsAttacking)
+                        {
+                            if(Creature* boss = me->GetCreature(*me, bossGUID[0]))
+                            {
+                                boss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                                boss->SetReactState(REACT_AGGRESSIVE);
+                                boss->setFaction(16);
+                                AggroAllPlayers(boss);
+                            }
+                            addsAttacking = true;
+                            events.ScheduleEvent(5, 1000);
+                        } else // Wait for his
+                        {
+                            if(Creature* boss = me->GetCreature(*me, bossGUID[0]))
+                            {
+                                if(boss->AI()->GetData(DATA_CHAMPION_DEFEATED) == 1)
+                                    events.ScheduleEvent(6, 0);
+                                else
+                                    events.ScheduleEvent(5, 1000);
+                            }
+                        }
+                        break;
+                    case 6:
+                        // Mark encounter as completed
+                        events.Reset();
+                        SetData(EVENT_WAVES_ARGENT, DONE);
+                        if(Creature* boss = me->GetCreature(*me, bossGUID[0]))
+                        {
+                            if(boss->GetEntry() == NPC_EADRIC)
+                                pInstance->SetData(BOSS_ARGENT_CHALLENGE_E, DONE);
+                            else
+                                pInstance->SetData(BOSS_ARGENT_CHALLENGE_P, DONE);
+                        }
                         break;
                 }
             }
@@ -1260,8 +1648,9 @@ public:
         if(pInstance->GetData(BOSS_GRAND_CHAMPIONS) != DONE)
         {
             if(CAST_AI(npc_announcer_toc5::npc_announcer_toc5AI, creature->AI())->AreAllPlayersMounted())
-                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
-        }//else if
+                player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
+        }//else if(pInstance->GetData(BOSS_ARGENT_CHALLENGE_E) != DONE || pInstance->GetData(BOSS_ARGENT_CHALLENGE_P) != DONE)
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_START_EVENT2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
         //if (pInstance &&
         //    ((pInstance->GetData(BOSS_GRAND_CHAMPIONS) == DONE &&
         //    pInstance->GetData(BOSS_BLACK_KNIGHT) == DONE &&
@@ -1283,17 +1672,27 @@ public:
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 action)
     {
         player->PlayerTalkClass->ClearMenus();
-        if (uiAction == GOSSIP_ACTION_INFO_DEF+1)
+        switch (action)
         {
-            if(creature->AI()->GetData(EVENT_INTRO) != IN_PROGRESS)
-            {
-                creature->AI()->SetData(EVENT_INTRO, IN_PROGRESS);
-                creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                player->CLOSE_GOSSIP_MENU();
-            }
+            case GOSSIP_ACTION_INFO_DEF:
+                if(creature->AI()->GetData(EVENT_INTRO) != IN_PROGRESS)
+                {
+                    creature->AI()->SetData(EVENT_INTRO, IN_PROGRESS);
+                    creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                    player->CLOSE_GOSSIP_MENU();
+                }
+                break;
+            case GOSSIP_ACTION_INFO_DEF+1:
+                if(creature->AI()->GetData(EVENT_INTRO_ARGENT) != IN_PROGRESS)
+                {
+                    creature->AI()->SetData(EVENT_INTRO_ARGENT, IN_PROGRESS);
+                    creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                    player->CLOSE_GOSSIP_MENU();
+                }
+                break;
         }
 
         return true;

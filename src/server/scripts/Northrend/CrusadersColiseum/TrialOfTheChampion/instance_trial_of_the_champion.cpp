@@ -48,12 +48,14 @@ public:
 
         uint64 uiAnnouncerGUID;
         uint64 uiMainGateGUID;
+        uint64 uiPortcullisGUID;
         uint64 uiGrandChampionVehicle1GUID;
         uint64 uiGrandChampionVehicle2GUID;
         uint64 uiGrandChampionVehicle3GUID;
         uint32 grandChampionEntry[3];
+        uint32 memoryEntry;
         uint64 uiChampionLootGUID;
-        uint64 uiArgentChampionGUID;
+        uint64 uimemoryEntryGUID;
 
         std::list<uint64> VehicleList;
         uint32 TeamInInstance;
@@ -70,11 +72,13 @@ public:
 
             uiAnnouncerGUID        = 0;
             uiMainGateGUID         = 0;
+            uiPortcullisGUID       = 0;
             uiGrandChampionVehicle1GUID   = 0;
             uiGrandChampionVehicle2GUID   = 0;
             uiGrandChampionVehicle3GUID   = 0;
             uiChampionLootGUID            = 0;
-            uiArgentChampionGUID          = 0;
+            uimemoryEntryGUID          = 0;
+            memoryEntry         = 0;
 
             bDone = false;
 
@@ -140,7 +144,7 @@ public:
                     break;
                 case NPC_EADRIC:
                 case NPC_PALETRESS:
-                    uiArgentChampionGUID = creature->GetGUID();
+                    uimemoryEntryGUID = creature->GetGUID();
                     break;
             }
         }
@@ -151,6 +155,9 @@ public:
             {
                 case GO_MAIN_GATE:
                     uiMainGateGUID = go->GetGUID();
+                    break;
+                case GO_PORTCULLIS:
+                    uiPortcullisGUID = go->GetGUID();
                     break;
                 case GO_CHAMPIONS_LOOT:
                 case GO_CHAMPIONS_LOOT_H:
@@ -193,7 +200,7 @@ public:
                     uiArgentSoldierDeaths = uiData;
                     if (uiArgentSoldierDeaths == 9)
                     {
-                        if (Creature* pBoss =  instance->GetCreature(uiArgentChampionGUID))
+                        if (Creature* pBoss =  instance->GetCreature(uimemoryEntryGUID))
                         {
                             pBoss->GetMotionMaster()->MovePoint(0, 746.88f, 618.74f, 411.06f);
                             pBoss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
@@ -228,6 +235,9 @@ public:
                 case DATA_GRAND_CHAMPION_3:
                     grandChampionEntry[2] = uiData;
                     break;
+                case DATA_MEMORY:
+                    memoryEntry = uiData;
+                    break;
             }
 
             if (uiData == DONE)
@@ -249,6 +259,7 @@ public:
                 case DATA_GRAND_CHAMPION_1: return grandChampionEntry[0];
                 case DATA_GRAND_CHAMPION_2: return grandChampionEntry[1];
                 case DATA_GRAND_CHAMPION_3: return grandChampionEntry[2];
+                case DATA_MEMORY: return memoryEntry;
             }
 
             return 0;
@@ -260,6 +271,7 @@ public:
             {
                 case DATA_ANNOUNCER: return uiAnnouncerGUID;
                 case DATA_MAIN_GATE: return uiMainGateGUID;
+                case DATA_PORTCULLIS: return uiPortcullisGUID;
             }
 
             return 0;
@@ -283,26 +295,6 @@ public:
                         if(grandChampionEntry[i] == GetRelatedCreatureEntry(criteria_id))
                             return true;
                     return false;
-            }
-
-            return false;
-        }
-        uint32 GetRelatedCreatureEntry(uint32 criteria_id)
-        {
-            switch(criteria_id)
-            {
-                case CRITERIA_CHAMPION_JACOB:   return NPC_JACOB;
-                case CRITERIA_CHAMPION_LANA:    return NPC_LANA;
-                case CRITERIA_CHAMPION_COLOSOS: return NPC_COLOSOS;
-                case CRITERIA_CHAMPION_AMBROSE: return NPC_AMBROSE;
-                case CRITERIA_CHAMPION_JAELYNE: return NPC_JAELYNE;
-
-                case CRITERIA_CHAMPION_MOKRA:   return NPC_MOKRA;
-                case CRITERIA_CHAMPION_VISCERI: return NPC_VISCERI;
-                case CRITERIA_CHAMPION_RUNOK:   return NPC_RUNOK;
-                case CRITERIA_CHAMPION_ERESSEA: return NPC_ERESSEA;
-                case CRITERIA_CHAMPION_ZULTORE: return NPC_ZULTORE;
-
                 case CRITERIA_MEMORIE_HOGGER:
                 case CRITERIA_MEMORIE_VANCLEEF:
                 case CRITERIA_MEMORIE_MUTANUS:
@@ -328,7 +320,52 @@ public:
                 case CRITERIA_MEMORIE_IGNIS:
                 case CRITERIA_MEMORIE_VEZAX:
                 case CRITERIA_MEMORIE_ALGALON:
-                    return 0;
+                    return (memoryEntry == GetRelatedCreatureEntry(criteria_id));
+            }
+
+            return false;
+        }
+        uint32 GetRelatedCreatureEntry(uint32 criteria_id)
+        {
+            switch(criteria_id)
+            {
+                case CRITERIA_CHAMPION_JACOB:   return NPC_JACOB;
+                case CRITERIA_CHAMPION_LANA:    return NPC_LANA;
+                case CRITERIA_CHAMPION_COLOSOS: return NPC_COLOSOS;
+                case CRITERIA_CHAMPION_AMBROSE: return NPC_AMBROSE;
+                case CRITERIA_CHAMPION_JAELYNE: return NPC_JAELYNE;
+
+                case CRITERIA_CHAMPION_MOKRA:   return NPC_MOKRA;
+                case CRITERIA_CHAMPION_VISCERI: return NPC_VISCERI;
+                case CRITERIA_CHAMPION_RUNOK:   return NPC_RUNOK;
+                case CRITERIA_CHAMPION_ERESSEA: return NPC_ERESSEA;
+                case CRITERIA_CHAMPION_ZULTORE: return NPC_ZULTORE;
+
+                case CRITERIA_MEMORIE_HOGGER:     return NPC_MEMORY_HOGGER;
+                case CRITERIA_MEMORIE_VANCLEEF:   return NPC_MEMORY_VANCLEEF;
+                case CRITERIA_MEMORIE_MUTANUS:    return NPC_MEMORY_MUTANUS;
+                case CRITERIA_MEMORIE_HEROD:      return NPC_MEMORY_HEROD;
+                case CRITERIA_MEMORIE_LUCIFROM:   return NPC_MEMORY_LUCIFROM;
+                case CRITERIA_MEMORIE_THUNDERAAN: return NPC_MEMORY_THUNDERAAN
+                case CRITERIA_MEMORIE_CHROMAGGUS: return NPC_MEMORY_CHROMAGGUS;
+                case CRITERIA_MEMORIE_HAKKAR:     return NPC_MEMORY_HAKKAR;
+                case CRITERIA_MEMORIE_VEKNILASH:  return NPC_MEMORY_VEKNILASH;
+                case CRITERIA_MEMORIE_KALITHRESH: return NPC_MEMORY_KALITHES;
+                case CRITERIA_MEMORIE_MALCHEZAAR: return NPC_MEMORY_MALCHEZAAR;
+                case CRITERIA_MEMORIE_GRUUL:      return NPC_MEMORY_GRUUL;
+                case CRITERIA_MEMORIE_VASHJ:      return NPC_MEMORY_VASHJ;
+                case CRITERIA_MEMORIE_ARCHIMONDE: return NPC_MEMORY_ARCHIMONDE;
+                case CRITERIA_MEMORIE_ILLIDAN:    return NPC_MEMORY_ILLIDAN;
+                case CRITERIA_MEMORIE_DELRISSA:   return NPC_MEMORY_DELRISSA:
+                case CRITERIA_MEMORIE_MURU:       return NPC_MEMORY_MURU;
+                case CRITERIA_MEMORIE_INGVAR:     return NPC_MEMORY_INGVAR;
+                case CRITERIA_MEMORIE_CYANIGOSA:  return NPC_MEMORY_CYANIGOSA;
+                case CRITERIA_MEMORIE_ECK:        return NPC_MEMORY_ECK;
+                case CRITERIA_MEMORIE_ONYXIA:     return NPC_MEMORY_ONYXIA;
+                case CRITERIA_MEMORIE_HEIGAN:     return NPC_MEMORY_HEIGAN;
+                case CRITERIA_MEMORIE_IGNIS:      return NPC_MEMORY_IGNIS;
+                case CRITERIA_MEMORIE_VEZAX:      return NPC_MEMORY_VEZAX;
+                case CRITERIA_MEMORIE_ALGALON:    return NPC_MEMORY_ALGALON;
             }
             return 0;
         }

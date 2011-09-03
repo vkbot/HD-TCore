@@ -566,10 +566,10 @@ public:
             if(damage >= me->GetHealth() && !shieldCasted)
             {
                 damage = 0;
-                DoCast(me, SPELL_DIVINE_SHIELD);
-                DoCastAOE(SPELL_FINAL_MEDITATION);
+                DoCast(me, SPELL_DIVINE_SHIELD, true);
+                DoCastVictim(SPELL_FINAL_MEDITATION);
                 shieldCasted = true;
-            }else if(shieldCasted)
+            }else if(shieldCasted && !me->HasAura(SPELL_DIVINE_SHIELD))
             {
                 damage = 0;
                 defeated = true;
@@ -585,7 +585,7 @@ public:
             if (!UpdateVictim())
                 return;
 
-            if(defeated)
+            if(defeated || me->HasAura(SPELL_DIVINE_SHIELD))
                 return;
 
             if (timerFlurryBlows <= diff)
@@ -674,7 +674,7 @@ public:
             {
                 Unit* target = DoSelectLowestHpFriendly(40);
 
-                if(target->GetHealth() > me->GetHealth())
+                if(!target || target->GetHealth() > me->GetHealth())
                     target = me;
 
                 DoCast(target, SPELL_BLAZING_LIGHT);

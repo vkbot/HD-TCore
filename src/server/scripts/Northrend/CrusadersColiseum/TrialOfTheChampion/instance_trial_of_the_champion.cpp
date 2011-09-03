@@ -90,6 +90,8 @@ public:
 
         bool IsEncounterInProgress() const
         {
+            if(GameObject* portcullis = instance->GetGameObject(GetData64(DATA_PORTCULLIS))
+            {}
             for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
             {
                 if (m_auiEncounter[i] == IN_PROGRESS)
@@ -212,6 +214,7 @@ public:
                     m_auiEncounter[1] = uiData;
                     if (Creature* pAnnouncer = instance->GetCreature(uiAnnouncerGUID))
                     {
+                        DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_ACHIEVEMENT_EADRIC);
                         pAnnouncer->GetMotionMaster()->MovePoint(0, 748.309f, 619.487f, 411.171f);
                         pAnnouncer->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                         pAnnouncer->SummonGameObject(instance->IsHeroic()? GO_EADRIC_LOOT_H : GO_EADRIC_LOOT, 746.59f, 618.49f, 411.09f, 1.42f, 0, 0, 0, 0, 90000000);
@@ -221,6 +224,8 @@ public:
                     m_auiEncounter[2] = uiData;
                     if (Creature* pAnnouncer = instance->GetCreature(uiAnnouncerGUID))
                     {
+                        DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_ACHIEVEMENT_PALETRESS);
+                        DoUpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_BE_SPELL_TARGET, SPELL_ACHIEVEMENT_MEMORIES);
                         pAnnouncer->GetMotionMaster()->MovePoint(0, 748.309f, 619.487f, 411.171f);
                         pAnnouncer->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                         pAnnouncer->SummonGameObject(instance->IsHeroic()? GO_PALETRESS_LOOT_H : GO_PALETRESS_LOOT, 746.59f, 618.49f, 411.09f, 1.42f, 0, 0, 0, 0, 90000000);
@@ -295,31 +300,31 @@ public:
                         if(grandChampionEntry[i] == GetRelatedCreatureEntry(criteria_id))
                             return true;
                     return false;
-                case CRITERIA_MEMORIE_HOGGER:
-                case CRITERIA_MEMORIE_VANCLEEF:
-                case CRITERIA_MEMORIE_MUTANUS:
-                case CRITERIA_MEMORIE_HEROD:
-                case CRITERIA_MEMORIE_LUCIFROM:
-                case CRITERIA_MEMORIE_THUNDERAAN:
-                case CRITERIA_MEMORIE_CHROMAGGUS:
-                case CRITERIA_MEMORIE_HAKKAR:
-                case CRITERIA_MEMORIE_VEKNILASH:
-                case CRITERIA_MEMORIE_KALITHRESH:
-                case CRITERIA_MEMORIE_MALCHEZAAR:
-                case CRITERIA_MEMORIE_GRUUL:
-                case CRITERIA_MEMORIE_VASHJ:
-                case CRITERIA_MEMORIE_ARCHIMONDE:
-                case CRITERIA_MEMORIE_ILLIDAN:
-                case CRITERIA_MEMORIE_DELRISSA:
-                case CRITERIA_MEMORIE_MURU:
-                case CRITERIA_MEMORIE_INGVAR:
-                case CRITERIA_MEMORIE_CYANIGOSA:
-                case CRITERIA_MEMORIE_ECK:
-                case CRITERIA_MEMORIE_ONYXIA:
-                case CRITERIA_MEMORIE_HEIGAN:
-                case CRITERIA_MEMORIE_IGNIS:
-                case CRITERIA_MEMORIE_VEZAX:
-                case CRITERIA_MEMORIE_ALGALON:
+                case CRITERIA_MEMORY_HOGGER:
+                case CRITERIA_MEMORY_VANCLEEF:
+                case CRITERIA_MEMORY_MUTANUS:
+                case CRITERIA_MEMORY_HEROD:
+                case CRITERIA_MEMORY_LUCIFROM:
+                case CRITERIA_MEMORY_THUNDERAAN:
+                case CRITERIA_MEMORY_CHROMAGGUS:
+                case CRITERIA_MEMORY_HAKKAR:
+                case CRITERIA_MEMORY_VEKNILASH:
+                case CRITERIA_MEMORY_KALITHRESH:
+                case CRITERIA_MEMORY_MALCHEZAAR:
+                case CRITERIA_MEMORY_GRUUL:
+                case CRITERIA_MEMORY_VASHJ:
+                case CRITERIA_MEMORY_ARCHIMONDE:
+                case CRITERIA_MEMORY_ILLIDAN:
+                case CRITERIA_MEMORY_DELRISSA:
+                case CRITERIA_MEMORY_MURU:
+                case CRITERIA_MEMORY_INGVAR:
+                case CRITERIA_MEMORY_CYANIGOSA:
+                case CRITERIA_MEMORY_ECK:
+                case CRITERIA_MEMORY_ONYXIA:
+                case CRITERIA_MEMORY_HEIGAN:
+                case CRITERIA_MEMORY_IGNIS:
+                case CRITERIA_MEMORY_VEZAX:
+                case CRITERIA_MEMORY_ALGALON:
                     return (memoryEntry == GetRelatedCreatureEntry(criteria_id));
             }
 
@@ -341,31 +346,31 @@ public:
                 case CRITERIA_CHAMPION_ERESSEA: return NPC_ERESSEA;
                 case CRITERIA_CHAMPION_ZULTORE: return NPC_ZULTORE;
 
-                case CRITERIA_MEMORIE_HOGGER:     return NPC_MEMORY_HOGGER;
-                case CRITERIA_MEMORIE_VANCLEEF:   return NPC_MEMORY_VANCLEEF;
-                case CRITERIA_MEMORIE_MUTANUS:    return NPC_MEMORY_MUTANUS;
-                case CRITERIA_MEMORIE_HEROD:      return NPC_MEMORY_HEROD;
-                case CRITERIA_MEMORIE_LUCIFROM:   return NPC_MEMORY_LUCIFROM;
-                case CRITERIA_MEMORIE_THUNDERAAN: return NPC_MEMORY_THUNDERAAN
-                case CRITERIA_MEMORIE_CHROMAGGUS: return NPC_MEMORY_CHROMAGGUS;
-                case CRITERIA_MEMORIE_HAKKAR:     return NPC_MEMORY_HAKKAR;
-                case CRITERIA_MEMORIE_VEKNILASH:  return NPC_MEMORY_VEKNILASH;
-                case CRITERIA_MEMORIE_KALITHRESH: return NPC_MEMORY_KALITHES;
-                case CRITERIA_MEMORIE_MALCHEZAAR: return NPC_MEMORY_MALCHEZAAR;
-                case CRITERIA_MEMORIE_GRUUL:      return NPC_MEMORY_GRUUL;
-                case CRITERIA_MEMORIE_VASHJ:      return NPC_MEMORY_VASHJ;
-                case CRITERIA_MEMORIE_ARCHIMONDE: return NPC_MEMORY_ARCHIMONDE;
-                case CRITERIA_MEMORIE_ILLIDAN:    return NPC_MEMORY_ILLIDAN;
-                case CRITERIA_MEMORIE_DELRISSA:   return NPC_MEMORY_DELRISSA:
-                case CRITERIA_MEMORIE_MURU:       return NPC_MEMORY_MURU;
-                case CRITERIA_MEMORIE_INGVAR:     return NPC_MEMORY_INGVAR;
-                case CRITERIA_MEMORIE_CYANIGOSA:  return NPC_MEMORY_CYANIGOSA;
-                case CRITERIA_MEMORIE_ECK:        return NPC_MEMORY_ECK;
-                case CRITERIA_MEMORIE_ONYXIA:     return NPC_MEMORY_ONYXIA;
-                case CRITERIA_MEMORIE_HEIGAN:     return NPC_MEMORY_HEIGAN;
-                case CRITERIA_MEMORIE_IGNIS:      return NPC_MEMORY_IGNIS;
-                case CRITERIA_MEMORIE_VEZAX:      return NPC_MEMORY_VEZAX;
-                case CRITERIA_MEMORIE_ALGALON:    return NPC_MEMORY_ALGALON;
+                case CRITERIA_MEMORY_HOGGER:     return NPC_MEMORY_HOGGER;
+                case CRITERIA_MEMORY_VANCLEEF:   return NPC_MEMORY_VANCLEEF;
+                case CRITERIA_MEMORY_MUTANUS:    return NPC_MEMORY_MUTANUS;
+                case CRITERIA_MEMORY_HEROD:      return NPC_MEMORY_HEROD;
+                case CRITERIA_MEMORY_LUCIFROM:   return NPC_MEMORY_LUCIFROM;
+                case CRITERIA_MEMORY_THUNDERAAN: return NPC_MEMORY_THUNDERAAN;
+                case CRITERIA_MEMORY_CHROMAGGUS: return NPC_MEMORY_CHROMAGGUS;
+                case CRITERIA_MEMORY_HAKKAR:     return NPC_MEMORY_HAKKAR;
+                case CRITERIA_MEMORY_VEKNILASH:  return NPC_MEMORY_VEKNILASH;
+                case CRITERIA_MEMORY_KALITHRESH: return NPC_MEMORY_KALITHRESH;
+                case CRITERIA_MEMORY_MALCHEZAAR: return NPC_MEMORY_MALCHEZAAR;
+                case CRITERIA_MEMORY_GRUUL:      return NPC_MEMORY_GRUUL;
+                case CRITERIA_MEMORY_VASHJ:      return NPC_MEMORY_VASHJ;
+                case CRITERIA_MEMORY_ARCHIMONDE: return NPC_MEMORY_ARCHIMONDE;
+                case CRITERIA_MEMORY_ILLIDAN:    return NPC_MEMORY_ILLIDAN;
+                case CRITERIA_MEMORY_DELRISSA:   return NPC_MEMORY_DELRISSA;
+                case CRITERIA_MEMORY_MURU:       return NPC_MEMORY_MURU;
+                case CRITERIA_MEMORY_INGVAR:     return NPC_MEMORY_INGVAR;
+                case CRITERIA_MEMORY_CYANIGOSA:  return NPC_MEMORY_CYANIGOSA;
+                case CRITERIA_MEMORY_ECK:        return NPC_MEMORY_ECK;
+                case CRITERIA_MEMORY_ONYXIA:     return NPC_MEMORY_ONYXIA;
+                case CRITERIA_MEMORY_HEIGAN:     return NPC_MEMORY_HEIGAN;
+                case CRITERIA_MEMORY_IGNIS:      return NPC_MEMORY_IGNIS;
+                case CRITERIA_MEMORY_VEZAX:      return NPC_MEMORY_VEZAX;
+                case CRITERIA_MEMORY_ALGALON:    return NPC_MEMORY_ALGALON;
             }
             return 0;
         }

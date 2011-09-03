@@ -161,66 +161,67 @@ public:
     boss_eadric() : CreatureScript("boss_eadric") { }
     struct boss_eadricAI : public ScriptedAI
     {
-        boss_eadricAI(Creature* creature) : ScriptedAI(creature)
-        {
-            pInstance = creature->GetInstanceScript();
-            //creature->SetReactState(REACT_PASSIVE);
-            //creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        }
+        boss_eadricAI(Creature* creature) : ScriptedAI(creature) { }
 
-        InstanceScript* pInstance;
+        uint32 venganceTimer;
+        uint32 radianceTimer;
+        uint32 hammerJusticeTimer;
 
-        uint32 uiVenganceTimer;
-        uint32 uiRadianceTimer;
-        uint32 uiHammerJusticeTimer;
-        uint32 uiResetTimer;
-
-        bool bDone;
+        bool defeated;
 
         void Reset()
         {
-            uiVenganceTimer = 10000;
-            uiRadianceTimer = 16000;
-            uiHammerJusticeTimer = 25000;
-            uiResetTimer = 5000;
+            venganceTimer = 10000;
+            radianceTimer = 16000;
+            hammerJusticeTimer = 25000;
 
-            bDone = false;
+            defeated = false;
         }
 
-        void DamageTaken(Unit* /*done_by*/, uint32 &damage)
+        void DamageTaken(Unit* /*attacker*/, uint32 & damage)
         {
-            if (damage >= me->GetHealth())
+            if(defeated)
             {
                 damage = 0;
-                EnterEvadeMode();
-                me->setFaction(35);
-                bDone = true;
+                return;
+            }
+
+            // Prevent damage from finishing hit and mark creature as defeated
+            if(damage >= me->GetHealth())
+            {
+                damage = 0;
+                defeated = true;
+                me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                me->GetMotionMaster()->MovePoint(1, me->GetHomePosition());
+                me->SetTarget(0);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
             }
         }
 
-        void MovementInform(uint32 MovementType, uint32 /*Data*/)
+        void MovementInform(uint32 type, uint32 id)
         {
-            if (MovementType != POINT_MOTION_TYPE)
-                return;
-
-            if (pInstance)
-                pInstance->SetData(BOSS_ARGENT_CHALLENGE_E, DONE);
-
-            me->DisappearAndDie();
+            if(type == POINT_MOTION_TYPE && id == 1)
+                me->DespawnOrUnsummon(0);
         }
 
-        void UpdateAI(const uint32 uiDiff)
+        uint32 GetData(uint32 type)
         {
-            if (bDone && uiResetTimer <= uiDiff)
-            {
-                me->GetMotionMaster()->MovePoint(0, 746.87f, 665.87f, 411.75f);
-                bDone = false;
-            } else uiResetTimer -= uiDiff;
+            // Used by Announcer on periodic check of the bosses state
+            if(type == DATA_CHAMPION_DEFEATED)
+                return defeated ? 1 : 0;
 
+            return 0;
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
             if (!UpdateVictim())
                 return;
 
-            if (uiHammerJusticeTimer <= uiDiff)
+            if(defeated || me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+            if (hammerJusticeTimer <= diff)
             {
                 me->InterruptNonMeleeSpells(true);
 
@@ -232,22 +233,22 @@ public:
                         DoCast(target, SPELL_HAMMER_RIGHTEOUS);
                     }
                 }
-                uiHammerJusticeTimer = 25000;
-            } else uiHammerJusticeTimer -= uiDiff;
+                hammerJusticeTimer = 25000;
+            } else hammerJusticeTimer -= diff;
 
-            if (uiVenganceTimer <= uiDiff)
+            if (venganceTimer <= diff)
             {
                 DoCast(me, SPELL_VENGEANCE);
 
-                uiVenganceTimer = 10000;
-            } else uiVenganceTimer -= uiDiff;
+                venganceTimer = 10000;
+            } else venganceTimer -= diff;
 
-            if (uiRadianceTimer <= uiDiff)
+            if (radianceTimer <= diff)
             {
                 DoCastAOE(SPELL_RADIANCE);
 
-                uiRadianceTimer = 16000;
-            } else uiRadianceTimer -= uiDiff;
+                radianceTimer = 16000;
+            } else radianceTimer -= diff;
 
             DoMeleeAttackIfReady();
         }
@@ -303,87 +304,92 @@ public:
 
     struct boss_paletressAI : public ScriptedAI
     {
-        boss_paletressAI(Creature* creature) : ScriptedAI(creature)
-        {
-            pInstance = creature->GetInstanceScript();
+        boss_paletressAI(Creature* creature) : ScriptedAI(creature) {}
 
-            MemoryGUID = 0;
-            //creature->SetReactState(REACT_PASSIVE);
-            //creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            creature->RestoreFaction();
-        }
 
-        InstanceScript* pInstance;
+        uint64 memoryGUID;
 
-        Creature* pMemory;
-        uint64 MemoryGUID;
+        bool shielded;
+        bool defeated;
 
-        bool bHealth;
-        bool bDone;
-
-        uint32 uiHolyFireTimer;
-        uint32 uiHolySmiteTimer;
-        uint32 uiRenewTimer;
-        uint32 uiResetTimer;
+        uint32 holyFireTimer;
+        uint32 holySmiteTimer;
+        uint32 renewTimer;
 
         void Reset()
         {
             me->RemoveAllAuras();
+            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
-            uiHolyFireTimer     = urand(9000, 12000);
-            uiHolySmiteTimer    = urand(5000, 7000);
-            uiRenewTimer        = urand(2000, 5000);
+            holyFireTimer     = urand(9000, 12000);
+            holySmiteTimer    = urand(5000, 7000);
+            renewTimer        = urand(2000, 5000);
 
-            uiResetTimer        = 7000;
+            memoryGUID = 0;
 
-            bHealth = false;
-            bDone = false;
+            shielded = false;
+            defeated = false;
 
-            if (Creature* pMemory = Unit::GetCreature(*me, MemoryGUID))
-                if (pMemory->isAlive())
-                    pMemory->RemoveFromWorld();
+            if (Creature* memory = Unit::GetCreature(*me, memoryGUID))
+                if (memory->isAlive())
+                    memory->RemoveFromWorld();
         }
 
-        void SetData(uint32 uiId, uint32 /*uiValue*/)
+        void SetData(uint32 id, uint32 /*value*/)
         {
-            if (uiId == 1)
+            if (id == 1)
                 me->RemoveAura(SPELL_SHIELD);
         }
 
-        void DamageTaken(Unit* /*done_by*/, uint32 &damage)
+        void DamageTaken(Unit* /*attacker*/, uint32 & damage)
         {
-            if (damage >= me->GetHealth())
+            if(defeated)
             {
                 damage = 0;
-                EnterEvadeMode();
-                me->setFaction(35);
-                bDone = true;
+                return;
+            }
+
+            // Prevent damage from finishing hit and mark creature as defeated
+            if(damage >= me->GetHealth())
+            {
+                damage = 0;
+                defeated = true;
+                me->SetUnitMovementFlags(MOVEMENTFLAG_WALKING);
+                me->GetMotionMaster()->MovePoint(1, me->GetHomePosition());
+                me->SetTarget(0);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
+                if (Creature* memory = Unit::GetCreature(*me, memoryGUID))
+                    if (memory->isAlive())
+                        memory->RemoveFromWorld();
             }
         }
 
-        void MovementInform(uint32 MovementType, uint32 Point)
+        void MovementInform(uint32 type, uint32 id)
         {
-            if (MovementType != POINT_MOTION_TYPE || Point != 0)
-                return;
-
-            if (pInstance)
-                pInstance->SetData(BOSS_ARGENT_CHALLENGE_P, DONE);
-
-            me->DisappearAndDie();
+            // Knee at home position after being defeated
+            if(type == POINT_MOTION_TYPE && id == 1)
+                me->DespawnOrUnsummon(0);
         }
 
-        void UpdateAI(const uint32 uiDiff)
+        uint32 GetData(uint32 type)
         {
-            if (bDone && uiResetTimer <= uiDiff)
-            {
-                me->GetMotionMaster()->MovePoint(0, 746.87f, 665.87f, 411.75f);
-                bDone = false;
-            } else uiResetTimer -= uiDiff;
+            // Used by Announcer on periodic check of the bosses state
+            if(type == DATA_CHAMPION_DEFEATED)
+                return defeated ? 1 : 0;
 
+            return 0;
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
             if (!UpdateVictim())
                 return;
 
-            if (uiHolyFireTimer <= uiDiff)
+            if(defeated || me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+            if (holyFireTimer <= diff)
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 250, true))
                 {
@@ -391,12 +397,12 @@ public:
                         DoCast(target, SPELL_HOLY_FIRE);
                 }
                  if (me->HasAura(SPELL_SHIELD))
-                    uiHolyFireTimer = 13000;
+                    holyFireTimer = 13000;
                 else
-                    uiHolyFireTimer = urand(9000, 12000);
-            } else uiHolyFireTimer -= uiDiff;
+                    holyFireTimer = urand(9000, 12000);
+            } else holyFireTimer -= diff;
 
-            if (uiHolySmiteTimer <= uiDiff)
+            if (holySmiteTimer <= diff)
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 250, true))
                 {
@@ -404,33 +410,33 @@ public:
                         DoCast(target, SPELL_SMITE);
                 }
                 if (me->HasAura(SPELL_SHIELD))
-                    uiHolySmiteTimer = 9000;
+                    holySmiteTimer = 9000;
                 else
-                    uiHolySmiteTimer = urand(5000, 7000);
-            } else uiHolySmiteTimer -= uiDiff;
+                    holySmiteTimer = urand(5000, 7000);
+            } else holySmiteTimer -= diff;
 
             if (me->HasAura(SPELL_SHIELD))
             {
-                if (uiRenewTimer <= uiDiff)
+                if (renewTimer <= diff)
                 {
                     me->InterruptNonMeleeSpells(true);
-                    uint8 uiTarget = urand(0, 1);
-                    switch(uiTarget)
+                    uint8 target = urand(0, 1);
+                    switch(target)
                     {
                         case 0:
                             DoCast(me, SPELL_RENEW);
                             break;
                         case 1:
-                            if (Creature* pMemory = Unit::GetCreature(*me, MemoryGUID))
-                                if (pMemory->isAlive())
-                                    DoCast(pMemory, SPELL_RENEW);
+                            if (Creature* memory = Unit::GetCreature(*me, memoryGUID))
+                                if (memory->isAlive())
+                                    DoCast(memory, SPELL_RENEW);
                             break;
                     }
-                    uiRenewTimer = urand(15000, 17000);
-                } else uiRenewTimer -= uiDiff;
+                    renewTimer = urand(15000, 17000);
+                } else renewTimer -= diff;
             }
 
-            if (!bHealth && !HealthAbovePct(25))
+            if (!shielded && HealthBelowPct(25))
             {
                 me->InterruptNonMeleeSpells(true);
                 DoCastAOE(SPELL_HOLY_NOVA, false);
@@ -438,7 +444,7 @@ public:
                 DoCastAOE(SPELL_SUMMON_MEMORY, false);
                 DoCastAOE(SPELL_CONFESS, false);
 
-                bHealth = true;
+                shielded = true;
             }
 
             DoMeleeAttackIfReady();
@@ -446,7 +452,7 @@ public:
 
         void JustSummoned(Creature* summon)
         {
-            MemoryGUID = summon->GetGUID();
+            memoryGUID = summon->GetGUID();
         }
     };
 
@@ -465,47 +471,50 @@ public:
     {
         npc_memoryAI(Creature* creature) : ScriptedAI(creature) {}
 
-        uint32 uiOldWoundsTimer;
-        uint32 uiShadowPastTimer;
-        uint32 uiWakingNightmare;
+        uint32 oldWoundsTimer;
+        uint32 shadowPastTimer;
+        uint32 wakingNightmareTimer;
 
         void Reset()
         {
-            uiOldWoundsTimer = 12000;
-            uiShadowPastTimer = 5000;
-            uiWakingNightmare = 7000;
+            if(InstanceScript* instance = me->GetInstanceScript())
+                instance->SetData(DATA_MEMORY, me->GetEntry());
+
+            oldWoundsTimer = 12000;
+            shadowPastTimer = 5000;
+            wakingNightmareTimer = 7000;
         }
 
-        void UpdateAI(const uint32 uiDiff)
+        void UpdateAI(const uint32 diff)
         {
             if (!UpdateVictim())
                 return;
 
-            if (uiOldWoundsTimer <= uiDiff)
+            if (oldWoundsTimer <= diff)
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
                 {
                     if (target && target->isAlive())
                         DoCast(target, SPELL_OLD_WOUNDS);
                 }
-                uiOldWoundsTimer = 12000;
-            }else uiOldWoundsTimer -= uiDiff;
+                oldWoundsTimer = 12000;
+            }else oldWoundsTimer -= diff;
 
-            if (uiWakingNightmare <= uiDiff)
+            if (wakingNightmareTimer <= diff)
             {
                 DoCast(me, SPELL_WAKING_NIGHTMARE);
-                uiWakingNightmare = 7000;
-            }else uiWakingNightmare -= uiDiff;
+                wakingNightmareTimer = 7000;
+            }else wakingNightmareTimer -= diff;
 
-            if (uiShadowPastTimer <= uiDiff)
+            if (shadowPastTimer <= diff)
             {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1))
                 {
                     if (target && target->isAlive())
                         DoCast(target, SPELL_SHADOWS_PAST);
                 }
-                uiShadowPastTimer = 5000;
-            }else uiShadowPastTimer -= uiDiff;
+                shadowPastTimer = 5000;
+            }else shadowPastTimer -= diff;
 
             DoMeleeAttackIfReady();
         }

@@ -59,19 +59,30 @@ UPDATE creature_template SET ScriptName = 'npc_argent_priest' WHERE entry = 3530
 UPDATE `creature_template` SET `mechanic_immune_mask` = '650854267' WHERE `entry` IN (35305, 35309, 35307, 12488, 12439, 12448);
 
 -- Memories equip templates
-UPDATE `creature_template` SET `equipment_id` = 22 WHERE `entry` = 34942;
-UPDATE `creature_template` SET `equipment_id` = 1431 WHERE `entry` = 35028;
-UPDATE `creature_template` SET `equipment_id` = 1178 WHERE `entry` = 35030;
-UPDATE `creature_template` SET `equipment_id` = 1330 WHERE `entry` = 35031;
-UPDATE `creature_template` SET `equipment_id` = 1808 WHERE `entry` = 35036;
-UPDATE `creature_template` SET `equipment_id` = 1496 WHERE `entry` = 35037;
-UPDATE `creature_template` SET `equipment_id` = 2216 WHERE `entry` = 35042;
-UPDATE `creature_template` SET `equipment_id` = 714 WHERE `entry` = 35045;
-UPDATE `creature_template` SET `equipment_id` = 271 WHERE `entry` = 35049;
+UPDATE `creature_template` SET `equipment_id` = 22 WHERE `entry` IN  (34942, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 34942));
+UPDATE `creature_template` SET `equipment_id` = 1431 WHERE `entry` = (35028, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35028));
+UPDATE `creature_template` SET `equipment_id` = 1178 WHERE `entry` = (35030, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35030));
+UPDATE `creature_template` SET `equipment_id` = 1330 WHERE `entry` = (35031, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35031));
+UPDATE `creature_template` SET `equipment_id` = 1808 WHERE `entry` = (35036, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35036));
+UPDATE `creature_template` SET `equipment_id` = 1496 WHERE `entry` = (35037, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35037));
+UPDATE `creature_template` SET `equipment_id` = 2216 WHERE `entry` = (35042, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35042));
+UPDATE `creature_template` SET `equipment_id` = 714 WHERE `entry` = (35045, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35045));
+UPDATE `creature_template` SET `equipment_id` = 271 WHERE `entry` = (35049, (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = 35049));
 -- Argent Champions equip templates
-UPDATE `creature_template` SET `equipment_id` = 19661 WHERE `entry` = 35309;
-DELETE FROM `creature_equip_template` WHERE (`entry`=19661);
-INSERT INTO `creature_equip_template` (`entry`, `itemEntry1`, `itemEntry2`, `itemEntry3`) VALUES (19661, 44244, 0, 0);
-UPDATE `creature_template` SET `equipment_id` = 19662 WHERE `entry` = 35307;
-DELETE FROM `creature_equip_template` WHERE (`entry`=19662);
-INSERT INTO `creature_equip_template` (`entry`, `itemEntry1`, `itemEntry2`, `itemEntry3`) VALUES (19662, 25935, 0, 0);
+SET @TemplateId := 2475;
+DELETE FROM `creature_equip_template` WHERE `entry` BETWEEN 2475 AND 2477;
+INSERT INTO `creature_equip_template` VALUES
+(@TemplateId, 44244, 0, 0), -- Argent Lightwielder
+(@TemplateId+1, 18608, 0, 0), -- Argent Priestess
+(@TemplateId+2, 40343, 0, 0); -- The Black Knight
+
+SET @NPC_LIGHTWIELDER   := 35309;
+SET @NPC_PRIESTESS      := 35307;
+SET @NPC_BLACK_KNIGHT   := 35451;
+SET @NPC_LIGHTWIELDER_H := (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = @NPC_LIGHTWIELDER);
+SET @NPC_PRIESTESS_H := (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = @NPC_PRIESTESS);
+SET @NPC_BLACK_KNIGHT_H := (SELECT `difficulty_entry_1` FROM `creature_template` WHERE `entry` = @NPC_BLACK_KNIGHT);
+
+UPDATE `creature_template` SET `equipment_id` = @TemplateId WHERE `entry` IN (@NPC_LIGHTWIELDER, @NPC_LIGHTWIELDER_H);
+UPDATE `creature_template` SET `equipment_id` = @TemplateId+1 WHERE `entry` IN (@NPC_PRIESTESS, @NPC_PRIESTESS_H);
+UPDATE `creature_template` SET `equipment_id` = @TemplateId+2 WHERE `entry` IN (@NPC_BLACK_KNIGHT, @NPC_BLACK_KNIGHT_H);

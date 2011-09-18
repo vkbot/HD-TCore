@@ -373,7 +373,7 @@ public:
 							pZombie->SetPhaseMask(2,true);
 							pZombie->AddThreat(pThalorien, 100);
 							pZombie->AI()->AttackStart(pThalorien);
-							// Super Ñapa!
+							// Super ï¿½apa!
 							if (pZombie->GetEntry() == 37541)
 								pZombie->DisappearAndDie();
 						}
@@ -388,7 +388,7 @@ public:
 							pZombie->SetPhaseMask(2,true);
 							pZombie->AddThreat(pThalorien, 100);
 							pZombie->AI()->AttackStart(pThalorien);
-							// Super Ñapa!
+							// Super ï¿½apa!
 							if (pZombie->GetEntry() == 37541)
 								pZombie->DisappearAndDie();
 						}
@@ -410,10 +410,12 @@ public:
 			if (summon->GetEntry() == 37542)
 				events.ScheduleEvent(13, 3000);
 		}
-		void SetGUID(const uint64 &uiGuid, int32 /*iId*/)
+		
+		void SetGUID(const uint64 guid, int32 /*id*/)
 		{
-			uiPlayer = uiGuid;
+			uiPlayer = guid;
 		}
+		
 		void DoAction(const int32 actionId)
 		{
 			switch(actionId)

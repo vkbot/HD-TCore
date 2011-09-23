@@ -1,0 +1,1 @@
+﻿UPDATE gossip_menu_option SET box_money=10000000, box_text ='Are you sure you wish to purchase a Dual Talent Specialization?' WHERE menu_id IN (0,3921,4525,4526,4527,9691,7260,6647,4558,9692,9693,10371) AND option_text LIKE "%%dual%%";

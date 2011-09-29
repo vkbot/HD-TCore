@@ -89,8 +89,13 @@ public:
             if (pInstance)
                 pInstance->SetData(DATA_KRYSTALLUS_EVENT, NOT_STARTED);
         }
-        void EnterCombat(Unit* /*who*/)
+        void EnterCombat(Unit* who)
         {
+            if(!me->IsInEvadeMode() && (who->isPet() || who->isHunterPet()))
+            {
+                EnterEvadeMode();
+                return;
+            }
             DoScriptText(SAY_AGGRO, me);
 
             if (pInstance)

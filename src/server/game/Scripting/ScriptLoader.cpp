@@ -61,6 +61,7 @@ void AddSC_quest_commandscript();
 void AddSC_reload_commandscript();
 void AddSC_tele_commandscript();
 void AddSC_titles_commandscript();
+void AddSC_wg_commandscript();
 void AddSC_wp_commandscript();
 void AddSC_gps_commandscript();
 
@@ -508,6 +509,7 @@ void AddSC_storm_peaks();
 void AddSC_zuldrak();
 void AddSC_crystalsong_forest();
 void AddSC_isle_of_conquest();
+void AddSC_wintergrasp();
 
 //outland
 void AddSC_boss_exarch_maladaar();           //Auchindoun Auchenai Crypts
@@ -600,6 +602,7 @@ void AddSC_outdoorpvp_na();
 void AddSC_outdoorpvp_si();
 void AddSC_outdoorpvp_tf();
 void AddSC_outdoorpvp_zm();
+void AddSC_outdoorpvp_wg();
 
 // player
 void AddSC_chat_log();
@@ -671,6 +674,7 @@ void AddCommandScripts()
     AddSC_reload_commandscript();
     AddSC_tele_commandscript();
     AddSC_titles_commandscript();
+    AddSC_wg_commandscript();
     AddSC_wp_commandscript();
     AddSC_gps_commandscript();
 }
@@ -1219,6 +1223,7 @@ void AddNorthrendScripts()
     AddSC_zuldrak();
     AddSC_crystalsong_forest();
     AddSC_isle_of_conquest();
+    AddSC_wintergrasp();
 #endif
 }
 
@@ -1231,6 +1236,7 @@ void AddOutdoorPvPScripts()
     AddSC_outdoorpvp_si();
     AddSC_outdoorpvp_tf();
     AddSC_outdoorpvp_zm();
+    AddSC_outdoorpvp_wg();
 #endif
 }
 

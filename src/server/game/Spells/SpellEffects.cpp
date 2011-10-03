@@ -1682,13 +1682,13 @@ void Spell::EffectTriggerSpell(SpellEffIndex effIndex)
                 }
                 return;
             }
-            // Priest Shadowfiend (34433) need apply mana gain trigger aura on pet
+            /* Priest Shadowfiend (34433) need apply mana gain trigger aura on pet
             case 41967:
             {
                 if (Unit* pet = unitTarget->GetGuardianPet())
                     pet->CastSpell(pet, 28305, true);
                 return;
-            }
+            }*/
         }
     }
 

@@ -68,6 +68,18 @@ void BattlegroundRV::PostUpdateImpl(uint32 diff)
                 // switch all DynLos
                 for (uint8 i = 0; i <= 3; i++)
                     GetBgMap()->SetDynLOSObjectState(m_DynLos[i], !GetBgMap()->GetDynLOSObjectState(m_DynLos[i]));
+
+                for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+                {
+                    Player *player = ObjectAccessor::FindPlayer(itr->first);
+                    if (!player)
+                        continue;
+
+                    GetBGObject(BG_RV_OBJECT_PILAR_1)->SendUpdateToPlayer(player);
+                    GetBGObject(BG_RV_OBJECT_PILAR_2)->SendUpdateToPlayer(player);
+                    GetBGObject(BG_RV_OBJECT_PILAR_3)->SendUpdateToPlayer(player);
+                    GetBGObject(BG_RV_OBJECT_PILAR_4)->SendUpdateToPlayer(player);
+                }
                 break;
             case BG_RV_STATE_OPEN_FIRE:
                 // FIXME: after 3.2.0 it's only decorative and should be opened only one time at battle start
@@ -84,6 +96,18 @@ void BattlegroundRV::PostUpdateImpl(uint32 diff)
                 // switch all DynLos
                 for (uint8 i = 0; i <= 3; i++)
                     GetBgMap()->SetDynLOSObjectState(m_DynLos[i], !GetBgMap()->GetDynLOSObjectState(m_DynLos[i]));
+
+                for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+                {
+                    Player *player = ObjectAccessor::FindPlayer(itr->first);
+                    if (!player)
+                        continue;
+
+                    GetBGObject(BG_RV_OBJECT_PILAR_1)->SendUpdateToPlayer(player);
+                    GetBGObject(BG_RV_OBJECT_PILAR_2)->SendUpdateToPlayer(player);
+                    GetBGObject(BG_RV_OBJECT_PILAR_3)->SendUpdateToPlayer(player);
+                    GetBGObject(BG_RV_OBJECT_PILAR_4)->SendUpdateToPlayer(player);
+                }
                 break;
         }
     }
@@ -108,8 +132,8 @@ void BattlegroundRV::StartingEventOpenDoors()
     setTimer(BG_RV_FIRST_TIMER);
 
     // Add all DynLoS to the map
-    m_DynLos[0] = GetBgMap()->AddDynLOSObject(763.632385f, -306.162384f, 25.909504f, 1.z2f, 5.0f);
-    m_DynLos[1] = GetBgMap()->AddDynLOSObject(723.644287f, -284.493256f, 24.648525f, 1.2f, 5.0f);
+    m_DynLos[0] = GetBgMap()->AddDynLOSObject(763.632385f, -306.162384f, 25.909504f, 1.3f, 5.0f);
+    m_DynLos[1] = GetBgMap()->AddDynLOSObject(723.644287f, -284.493256f, 24.648525f, 1.3f, 5.0f);
     m_DynLos[2] = GetBgMap()->AddDynLOSObject(763.611145f, -261.856750f, 25.909504f, 5.0f, 8.0f);
     m_DynLos[3] = GetBgMap()->AddDynLOSObject(802.211609f, -284.493256f, 24.648525f, 5.0f, 8.0f);
 

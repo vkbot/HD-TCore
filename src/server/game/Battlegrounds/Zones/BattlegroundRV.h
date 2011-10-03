@@ -91,6 +91,11 @@ enum BattlegroundRVData
     BG_RV_WORLD_STATE                            = 0xe1a,
 };
 
+#define BG_RV_PILAR_SMALL_RADIUS  1.25f
+#define BG_RV_PILAR_SMALL_HEIGHT  5.0f
+#define BG_RV_PILAR_BIG_RADIUS    5.0f
+#define BG_RV_PILAR_BIG_HEIGHT    8.25f
+
 class BattlegroundRVScore : public BattlegroundScore
 {
     public:

@@ -65,21 +65,7 @@ void BattlegroundRV::PostUpdateImpl(uint32 diff)
                     DoorOpen(i);
                 setTimer(BG_RV_PILAR_TO_FIRE_TIMER);
                 setState(BG_RV_STATE_OPEN_FIRE);
-                // switch all DynLos
-                for (uint8 i = 0; i <= 3; i++)
-                    GetBgMap()->SetDynLOSObjectState(m_DynLos[i], !GetBgMap()->GetDynLOSObjectState(m_DynLos[i]));
-
-                for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-                {
-                    Player *player = ObjectAccessor::FindPlayer(itr->first);
-                    if (!player)
-                        continue;
-
-                    GetBGObject(BG_RV_OBJECT_PILAR_1)->SendUpdateToPlayer(player);
-                    GetBGObject(BG_RV_OBJECT_PILAR_2)->SendUpdateToPlayer(player);
-                    GetBGObject(BG_RV_OBJECT_PILAR_3)->SendUpdateToPlayer(player);
-                    GetBGObject(BG_RV_OBJECT_PILAR_4)->SendUpdateToPlayer(player);
-                }
+                SwitchDynLos();
                 break;
             case BG_RV_STATE_OPEN_FIRE:
                 // FIXME: after 3.2.0 it's only decorative and should be opened only one time at battle start
@@ -93,21 +79,7 @@ void BattlegroundRV::PostUpdateImpl(uint32 diff)
                     DoorOpen(i);
                 setTimer(BG_RV_PILAR_TO_FIRE_TIMER);
                 setState(BG_RV_STATE_CLOSE_FIRE);
-                // switch all DynLos
-                for (uint8 i = 0; i <= 3; i++)
-                    GetBgMap()->SetDynLOSObjectState(m_DynLos[i], !GetBgMap()->GetDynLOSObjectState(m_DynLos[i]));
-
-                for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-                {
-                    Player *player = ObjectAccessor::FindPlayer(itr->first);
-                    if (!player)
-                        continue;
-
-                    GetBGObject(BG_RV_OBJECT_PILAR_1)->SendUpdateToPlayer(player);
-                    GetBGObject(BG_RV_OBJECT_PILAR_2)->SendUpdateToPlayer(player);
-                    GetBGObject(BG_RV_OBJECT_PILAR_3)->SendUpdateToPlayer(player);
-                    GetBGObject(BG_RV_OBJECT_PILAR_4)->SendUpdateToPlayer(player);
-                }
+                SwitchDynLos();
                 break;
         }
     }
@@ -260,4 +232,28 @@ bool BattlegroundRV::SetupBattleground()
         return false;
     }
     return true;
+}
+
+void BattlegroundRV::SwitchDynLos()
+{
+    // switch all DynLos to the opposite state
+    for (uint8 i = 0; i <= 3; i++)
+        GetBgMap()->SetDynLOSObjectState(m_DynLos[i], !GetBgMap()->GetDynLOSObjectState(m_DynLos[i]));
+
+    // Force every pillar to update their status to players
+    for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+    {
+        Player *player = ObjectAccessor::FindPlayer(itr->first);
+        if (!player)
+            continue;
+
+        if(GameObject* pilar = GetBGObject(BG_RV_OBJECT_PILAR_1))
+            pilar->SendUpdateToPlayer(player);
+        if(GameObject* pilar = GetBGObject(BG_RV_OBJECT_PILAR_2))
+            pilar->SendUpdateToPlayer(player);
+        if(GameObject* pilar = GetBGObject(BG_RV_OBJECT_PILAR_3))
+            pilar->SendUpdateToPlayer(player);
+        if(GameObject* pilar = GetBGObject(BG_RV_OBJECT_PILAR_4))
+            pilar->SendUpdateToPlayer(player);
+    }
 }

@@ -2705,6 +2705,20 @@ uint32 Map::AddDynLOSObject(float x, float y, float radius)
     return m_dynamicLOSCounter;
 }
 
+uint32 Map::AddDynLOSObject(float x, float y, float z, float radius, float height)
+{
+    DynamicLOSObject* obj = new DynamicLOSObject();
+    obj->SetCoordinates(x, y);
+    obj->SetZ(z);
+    obj->SetHeight(height);
+    obj->SetRadius(radius);
+
+    // Add the dynamic object to the map
+    m_dynamicLOSObjects[++m_dynamicLOSCounter] = obj;
+
+    return m_dynamicLOSCounter;
+}
+
 void Map::SetDynLOSObjectState(uint32 id, bool state)
 {
     std::map<uint32, DynamicLOSObject*>::iterator iter = m_dynamicLOSObjects.find(id);
@@ -2712,13 +2726,21 @@ void Map::SetDynLOSObjectState(uint32 id, bool state)
         iter->second->SetActiveState(state);
 }
 
-bool Map::IsInDynLOS(float x, float y, float x2, float y2)
+bool Map::GetDynLOSObjectState(uint32 id)
+{
+    std::map<uint32, DynamicLOSObject*>::iterator iter = m_dynamicLOSObjects.find(id);
+    if (iter != m_dynamicLOSObjects.end())
+        return (iter->second->IsActive());
+    return false;
+}
+
+bool Map::IsInDynLOS(float x, float y, float z, float x2, float y2, float z2)
 {
     if (!m_dynamicLOSCounter)
         return true;
 
     for (std::map<uint32, DynamicLOSObject*>::iterator iter = m_dynamicLOSObjects.begin(); iter != m_dynamicLOSObjects.end(); ++iter)
-        if (iter->second->IsActive() && iter->second->IsBetween(x, y, x2, y2))
+        if (iter->second->IsActive() && iter->second->IsBetween(x, y, z, x2, y2, z2))
             return false;
 
     return true;
@@ -2728,14 +2750,25 @@ DynamicLOSObject::DynamicLOSObject()
 {
     _x = 0.0f;
     _y = 0.0f;
+    _z = 0.0f;
+    _height = 0.0f;
     _radius = 0.0f;
     _active = false;
 }
 
-bool DynamicLOSObject::IsBetween(float x, float y, float x2, float y2)
+bool DynamicLOSObject::IsBetween(float x, float y, float z, float x2, float y2, float z2)
 {
     if (IsInside(x, y) || IsInside(x2, y2))
+    {
+        sLog->outBasic("IsInside: %b %b %f", HasHeightInfo(), IsOverOrUnder(z), z2);
+        if(HasHeightInfo() && !IsOverOrUnder(z2))
+        {
+            sLog->outBasic("IsOverIt");
+            return false;
+        }
+
         return true;
+    }
 
     if ((std::max(x, x2) < (_x - _radius))
         || (std::min(x, x2) > (_x + _radius))
@@ -2756,6 +2789,12 @@ bool DynamicLOSObject::IsBetween(float x, float y, float x2, float y2)
 bool DynamicLOSObject::IsInside(float x, float y)
 {
     return (((x-_x)*(x-_x)+(y-_y)*(y-_y))<(_radius*_radius));
+}
+
+bool DynamicLOSObject::IsOverOrUnder(float z)
+{
+    if(!HasHeightInfo()) return true;
+    return (!((z < _z+_height) && (z > _z)));
 }
 
 float DynamicLOSObject::GetDistance(float x, float y)
@@ -2782,4 +2821,19 @@ void DynamicLOSObject::SetCoordinates(float x, float y)
 void DynamicLOSObject::SetRadius(float r)
 {
     _radius = r;
+}
+
+void DynamicLOSObject::SetZ(float z)
+{
+    _z = z;
+}
+
+void DynamicLOSObject::SetHeight(float h)
+{
+    _height = h;
+}
+
+bool DynamicLOSObject::HasHeightInfo()
+{
+    return (_z != 0 || _height != 0);
 }

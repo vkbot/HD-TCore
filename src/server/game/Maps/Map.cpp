@@ -2760,12 +2760,15 @@ bool DynamicLOSObject::IsBetween(float x, float y, float z, float x2, float y2, 
 {
     if (IsInside(x, y) || IsInside(x2, y2))
     {
-        if(HasHeightInfo() && !IsOverOrUnder(z2))
+        if(HasHeightInfo() && IsOverOrUnder(z2))
             return false;
 
         return true;
     }
 
+    // For a real handling of Z coord is necessary to do some research from this point
+    // i.e. A player over a huge round plattaform, placed near the edge; and other player placed  down the plattaform at the oposing extreme just next to the edge; 
+    // both may be able to attack each other, even when the plattaform height should prevent that.
     if ((std::max(x, x2) < (_x - _radius))
         || (std::min(x, x2) > (_x + _radius))
         || (std::max(y, y2) < (_y - _radius))
@@ -2789,8 +2792,7 @@ bool DynamicLOSObject::IsInside(float x, float y)
 
 bool DynamicLOSObject::IsOverOrUnder(float z)
 {
-    if(!HasHeightInfo()) return true;
-    return (!((z < _z+_height) && (z > _z)));
+    return ((z < _z+_height) && (z > _z));
 }
 
 float DynamicLOSObject::GetDistance(float x, float y)

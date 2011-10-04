@@ -2760,12 +2760,8 @@ bool DynamicLOSObject::IsBetween(float x, float y, float z, float x2, float y2, 
 {
     if (IsInside(x, y) || IsInside(x2, y2))
     {
-        sLog->outBasic("IsInside: %b %b %f", HasHeightInfo(), IsOverOrUnder(z), z2);
         if(HasHeightInfo() && !IsOverOrUnder(z2))
-        {
-            sLog->outBasic("IsOverIt");
             return false;
-        }
 
         return true;
     }

@@ -55,7 +55,7 @@ void BattlegroundDS::PostUpdateImpl(uint32 diff)
                 Player *plr = ObjectAccessor::FindPlayer(itr->first);
                 if (!plr)
                     continue;
-	
+    
                 if (plr->GetDistance2d(1214.0f, 765.0f) <= 50.0f && plr->GetPositionZ() > 13.0f)
                     plr->KnockBackWithAngle(0.0f, 55.0f, 9.0f);
                 else if (plr->GetDistance2d(1369.0f, 817.0f) <= 50.0f && plr->GetPositionZ() > 13.0f)
@@ -66,7 +66,7 @@ void BattlegroundDS::PostUpdateImpl(uint32 diff)
         else
             m_knockback -= diff;
     }
-	
+    
     if (!m_knockback && m_teleport)
     {
         if (m_teleport <= diff)
@@ -76,7 +76,7 @@ void BattlegroundDS::PostUpdateImpl(uint32 diff)
                 Player* plr = ObjectAccessor::FindPlayer(itr->first);
                 if (!plr)
                     continue;
-	
+    
                 if (plr->GetPositionZ() > 13.0f)
                     HandlePlayerUnderMap(plr);
             }
@@ -85,7 +85,7 @@ void BattlegroundDS::PostUpdateImpl(uint32 diff)
         else
             m_teleport -= diff;
     }
-	
+    
     if (m_waterFall <= diff)
     {
         if (m_waterFallStatus == 0) // Add the water
@@ -101,8 +101,8 @@ void BattlegroundDS::PostUpdateImpl(uint32 diff)
                 Player *plr = ObjectAccessor::FindPlayer(itr->first);
                 if (!plr)
                     continue;
-	
-                if (plr->GetDistance2d(1291.56f, 790.837f) <= BG_DS_WATERFALL_RADIUS + 4.0f)
+    
+                if (plr->GetDistance2d(1291.56f, 790.837f) <= BG_DS_WATERFALL_RADIUS)
                     plr->KnockbackFrom(1291.56f, 790.837f, 20.0f, 7.0f);
             }
             SpawnBGObject(BG_DS_OBJECT_WATER_1, RESPAWN_IMMEDIATELY);
@@ -122,21 +122,24 @@ void BattlegroundDS::PostUpdateImpl(uint32 diff)
     else
         m_waterFall -= diff;
 
-	// Players should get knocked if the approach too much to the active waterfall
-	if (m_waterFallStatus == 2)
+    // Players should get knocked if the approach too much to the active waterfall
+    if (m_waterFallStatus == 2)
         for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
         {
             Player *plr = ObjectAccessor::FindPlayer(itr->first);
             if (!plr || plr->IsFalling())
                 continue;
 
-            if (plr->GetDistance2d(1291.56f, 790.837f) <= BG_DS_WATERFALL_RADIUS*2.0f)
-			{
-				// Calculation for knockback horizontal factor
-				float horizontalFactor = 20.0f*(1/plr->GetDistance2d(1291.56f, 790.837f));
-
-                plr->KnockbackFrom(1291.56f, 790.837f, horizontalFactor, 10.0f);
+            if (plr->GetDistance2d(1291.56f, 790.837f) <= BG_DS_WATERFALL_RADIUS)
+            {
+				plr->KnockbackFrom(1291.56f, 790.837f, 20.0f, 7.0f);
 			}
+			else if (plr->GetDistance2d(1291.56f, 790.837f) <= BG_DS_WATERFALL_RADIUS + 4.0f)
+			{
+                // Calculation for knockback horizontal factor
+                float horizontalFactor = 20.0f*(1/(plr->GetDistance2d(1291.56f, 790.837f) - BG_DS_WATERFALL_RADIUS));
+                plr->KnockbackFrom(1291.56f, 790.837f, horizontalFactor, 10.0f);
+            }
         }
 }
 

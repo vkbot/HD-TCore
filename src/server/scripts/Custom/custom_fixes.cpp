@@ -3777,6 +3777,43 @@ class at_brewfest : public AreaTriggerScript
                 std::map<uint32, time_t> _triggerTimes;
 };
 
+enum mistwhisperTreasure
+{
+    QUEST_LOST_MISTWHISPER_TREASURE = 12575,
+    NPC_WARLORD_TARTEK              = 28105,
+	ITEM_MISTWHISPER_TREASURE       = 38601,
+};
+
+class go_mistwhisper_treasure : public GameObjectScript
+{
+public:
+    go_mistwhisper_treasure() : GameObjectScript("go_mistwhisper_treasure") { }
+
+    bool OnGossipHello(Player* player, GameObject* go)
+    {
+		sLog->outBasic("test0");
+        if (player->HasItemCount(ITEM_MISTWHISPER_TREASURE, 1) && player->GetQuestStatus(QUEST_LOST_MISTWHISPER_TREASURE) == QUEST_STATUS_INCOMPLETE)
+		{
+			if (tartekGUID)
+				if (Creature* tartek = player->GetCreature(*player, tartekGUID))
+					if (tartek->isAlive())
+						return false;
+					else
+						tartek->DespawnOrUnsummon();
+
+			sLog->outBasic("test1");
+			if (Creature*  tartek = go->SummonCreature(NPC_WARLORD_TARTEK, 6708.30f, 5147.15f, 0.92712f, 4.9878f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 20000))
+			{
+				tartekGUID = tartek->GetGUID();
+				tartek->GetMotionMaster()->MovePoint(0, player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+			}
+		}
+        return true;
+    }
+private:
+	uint64 tartekGUID;
+};
+
 void AddSC_custom_fixes()
 {
     new go_not_a_bug;
@@ -3831,4 +3868,5 @@ void AddSC_custom_fixes()
     new npc_dragonforged_blades_giver();
     new npc_dark_iron_guzzler();
     new at_brewfest();
+    new go_mistwhisper_treasure();
 }

@@ -11,7 +11,7 @@
 set(scripts_STAT_SRCS
   ${scripts_STAT_SRCS}
   Vkbot/npc_mount.cpp
-  Vkbot/duel_reset.cpp
+  Vkbot/duel_rese.cpp
   Vkbot/npc_custom_summon.cpp
 )
 

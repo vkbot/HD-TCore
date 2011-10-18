@@ -38,7 +38,7 @@ set(scripts_STAT_SRCS
 )
 
 if(SCRIPTS)
-  include(Vkbot/CmakeLists.txt)
+  include(Vkbot/CMakeLists.txt)
   include(Custom/CMakeLists.txt)
   include(World/CMakeLists.txt)
   include(OutdoorPvP/CMakeLists.txt)

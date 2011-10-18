@@ -1257,7 +1257,7 @@ void AddSC_hyd_lottery();
 void AddSC_icc_rep_rings();
 void AddSC_npc_custom_summon();
 void AddSC_npc_mount();
-AddSC_DuelReset();
+void AddSC_DuelReset();
 #endif
 
 void AddCustomScripts()

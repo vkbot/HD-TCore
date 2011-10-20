@@ -746,9 +746,16 @@ uint32 Unit::DealDamage(Unit* victim, uint32 damage, CleanDamage const* cleanDam
 
         // in bg, count dmg if victim is also a player
         if (victim->GetTypeId() == TYPEID_PLAYER)
+        {
             if (Battleground* bg = killer->GetBattleground())
+            {
                 bg->UpdatePlayerScore(killer, SCORE_DAMAGE_DONE, damage);
-
+                /** World of Warcraft Armory **/
+                if (Battleground *bgV = ((Player*)victim)->GetBattleground())
+                    bgV->UpdatePlayerScore(((Player*)victim), SCORE_DAMAGE_TAKEN, damage);
+                /** World of Warcraft Armory **/
+            }
+        }
         killer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_DAMAGE_DONE, damage, 0, victim);
         killer->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_HIT_DEALT, damage);
     }
@@ -4453,14 +4460,26 @@ int32 Unit::GetTotalAuraModifierByMiscMask(AuraType auratype, uint32 misc_mask) 
 
 float Unit::GetTotalAuraMultiplierByMiscMask(AuraType auratype, uint32 misc_mask) const
 {
+    std::map<SpellGroup, int32> SameEffectSpellGroup;
     float multiplier = 1.0f;
 
     AuraEffectList const& mTotalAuraList = GetAuraEffectsByType(auratype);
     for (AuraEffectList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
     {
-        if ((*i)->GetMiscValue()& misc_mask)
-            AddPctN(multiplier, (*i)->GetAmount());
+        if (((*i)->GetMiscValue() & misc_mask))
+        {
+            // Check if the Aura Effect has a the Same Effect Stack Rule and if so, use the highest amount of that SpellGroup
+            // If the Aura Effect does not have this Stack Rule, it returns false so we can add to the multiplier as usual
+            if (!sSpellMgr->AddSameEffectStackRuleSpellGroups((*i)->GetSpellInfo(), (*i)->GetAmount(), SameEffectSpellGroup))
+                AddPctN(multiplier, (*i)->GetAmount());
+        }
     }
+    // Add the highest of the Same Effect Stack Rule SpellGroups to the multiplier
+    for (std::map<SpellGroup, int32>::const_iterator itr = SameEffectSpellGroup.begin(); itr != SameEffectSpellGroup.end(); ++itr)
+    {
+        AddPctN(multiplier, itr->second);
+    }
+
     return multiplier;
 }
 
@@ -10089,6 +10108,10 @@ int32 Unit::DealHeal(Unit* victim, uint32 addhealth)
     {
         player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_TOTAL_HEALING_RECEIVED, gain);
         player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_HEALING_RECEIVED, addhealth);
+        /** World of Warcraft Armory **/
+        if (Battleground *bgV = victim->ToPlayer()->GetBattleground())
+            bgV->UpdatePlayerScore((Player*)victim, SCORE_HEALING_TAKEN, gain);
+        /** World of Warcraft Armory **/
     }
 
     return gain;
@@ -10691,11 +10714,6 @@ uint32 Unit::SpellDamageBonus(Unit* victim, SpellInfo const* spellProto, uint32 
                     float mod = victim->ToPlayer()->GetRatingBonusValue(CR_CRIT_TAKEN_MELEE) * (-8.0f);
                     AddPctF(TakenTotalMod, std::max(mod, float((*i)->GetAmount())));
                 }
-                break;
-            // Ebon Plague
-            case 1933:
-                if ((*i)->GetMiscValue() & (spellProto ? spellProto->GetSchoolMask() : 0))
-                    AddPctN(TakenTotalMod, (*i)->GetAmount());
                 break;
         }
     }
@@ -15625,7 +15643,9 @@ void Unit::Kill(Unit* victim, bool durabilityLoss)
                 if (instanceMap->IsRaidOrHeroicDungeon())
                 {
                     if (creature->GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_INSTANCE_BIND)
-                        ((InstanceMap*)instanceMap)->PermBindAllPlayers(creditedPlayer);
+                    {
+                        ((InstanceMap*)instanceMap)->PermBindAllPlayers(creditedPlayer);                        creditedPlayer->CreateWowarmoryFeed(3, creature->GetCreatureInfo()->Entry, 0, 0);
+                    }
                 }
                 else
                 {

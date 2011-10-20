@@ -115,8 +115,7 @@ public:
         void DamageTaken(Unit* pDone_by, uint32& uiDamage)
         {
             if (pDone_by && HealthBelowPct(75) && pDone_by->GetTypeId() != TYPEID_PLAYER)
-            {
-                uiDamage = 0;
+            {                uiDamage = 0;
                 return;
             }
         }

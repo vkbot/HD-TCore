@@ -326,8 +326,11 @@ void AnticheatMgr::BuildReport(Player* player,uint8 reportType)
     // Send warning to ingame GMs
     if (m_Players[key].GetTotalReports() > sWorld->getIntConfig(CONFIG_ANTICHEAT_REPORTS_INGAME_NOTIFICATION))
     {
-        sLog->outWarden("Passive AntiCheat: %s detected as possible cheater. HackType: %u.", player->GetName(), reportType);
-        sWorld->SendGMText(LANG_CHEATER_CHATLOG, "AntiCheat", player->GetName());
+		std::string str = "";
+        str = "|cFFFFFC00[AC]|cFF00FFFF[|cFF60FF00" + std::string(player->GetName()) + "|cFF00FFFF] Possible cheater! HackType: %u." + reportType;
+        WorldPacket data(SMSG_NOTIFICATION, (str.size()+1));
+        data << str;
+        sWorld->SendGlobalGMMessage(&data);
     }
 }
 

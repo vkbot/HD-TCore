@@ -224,6 +224,7 @@ public:
                if(m_uiSummonTimer < uiDiff) 
                {
                        ++SummonCount;
+					   m_pInstance->SetData(DATA_WAVE_COUNT,SummonCount+5);
                        if(SummonCount == 1)
                           DoScriptText(SAY_MARWYN_INTRO, me);
 

@@ -209,6 +209,7 @@ public:
                 if (m_uiSummonTimer < uiDiff) 
                 {
                         ++SummonCount;
+						m_pInstance->SetData(DATA_WAVE_COUNT,SummonCount);
                         if(SummonCount > 4) 
                         {
                             m_pInstance->SetData(TYPE_FALRIC, IN_PROGRESS);

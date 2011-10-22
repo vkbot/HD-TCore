@@ -40,6 +40,7 @@ enum Data
     DATA_LIDER              = 102,
     DATA_SUMMONS            = 103,
     DATA_TEAM_IN_INSTANCE   = 104,
+	DATA_WAVE_COUNT         = 105,
 
     /*UNITS*/
     NPC_DARK_1                   = 38177, //Shadowy Mercenary
@@ -135,6 +136,12 @@ static Locations SpawnLoc[]=
     {5319.835f, 1975.177f, 707.694f, 1.62f}, //14
     {5277.445f, 2017.197f, 707.694f, 0.05f}, //26
     {5298.198f, 2037.762f, 707.694f, 4.71f}  //0
+};
+
+enum HallsOfReflectionWorldStates
+{
+	WORLD_STATE_HOR                               = 4884,
+	WORLD_STATE_HOR_WAVE_COUNT                    = 4882,
 };
 
 #endif

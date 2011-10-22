@@ -91,6 +91,7 @@ public:
             m_uiIceWall4GUID = 0;
             m_uiGoCaveGUID = 0;
             m_uiTeamInInstance = 0;
+			m_waveCount = 0;
         }
 
         void OpenDoor(uint64 guid)
@@ -213,6 +214,15 @@ public:
         {
             switch(uiType)
             {
+				case DATA_WAVE_COUNT:           m_waveCount = uiData;
+                                uiData = NOT_STARTED;
+                                if (m_waveCount > 0 && m_waveCount < 10)
+                                {
+                                        DoUpdateWorldState(WORLD_STATE_HOR, 1);
+                                        DoUpdateWorldState(WORLD_STATE_HOR_WAVE_COUNT, m_waveCount-1);
+                                }
+                                else
+                                        DoUpdateWorldState(WORLD_STATE_HOR, 0);
                 case TYPE_PHASE:                m_auiEncounter[uiType] = uiData; break;
                 case TYPE_EVENT:                m_auiEncounter[uiType] = uiData;
                                                 uiData = NOT_STARTED;

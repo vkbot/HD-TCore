@@ -50,6 +50,7 @@ public:
 
         uint8 Difficulty;
         uint8 m_uiSummons;
+		uint8 m_waveCount;
 
         uint64 m_uiFalricGUID;
         uint64 m_uiMarwynGUID;  

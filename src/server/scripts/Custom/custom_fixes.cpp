@@ -3746,6 +3746,115 @@ enum HalloweenData
     GO_STINKY_BOMB_CLOUD   = 180450,
 
     QUEST_CRASHING_WICKERMAN_FESTIVAL = 1658,
+
+    SPELL_PIRATE_COSTUME_MALE           = 24708,
+    SPELL_PIRATE_COSTUME_FEMALE         = 24709,
+    SPELL_NINJA_COSTUME_MALE            = 24710,
+    SPELL_NINJA_COSTUME_FEMALE          = 24711,
+    SPELL_LEPER_GNOME_COSTUME_MALE      = 24712,
+    SPELL_LEPER_GNOME_COSTUME_FEMALE    = 24713,
+    SPELL_GHOST_COSTUME_MALE            = 24735,
+    SPELL_GHOST_COSTUME_FEMALE          = 24736,
+
+
+    SPELL_HALLOWEEN_WAND_PIRATE         = 24717,
+    SPELL_HALLOWEEN_WAND_NINJA          = 24718,
+    SPELL_HALLOWEEN_WAND_LEPER_GNOME    = 24719,
+    SPELL_HALLOWEEN_WAND_RANDOM         = 24720,
+    SPELL_HALLOWEEN_WAND_SKELETON       = 24724,
+    SPELL_HALLOWEEN_WAND_WISP           = 24733,
+    SPELL_HALLOWEEN_WAND_GHOST          = 24737,
+    SPELL_HALLOWEEN_WAND_BAT            = 24741,
+};
+
+class spell_halloween_wand : public SpellScriptLoader
+{
+public:
+    spell_halloween_wand() : SpellScriptLoader("spell_halloween_wand") {}
+
+    class spell_halloween_wand_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_halloween_wand_SpellScript)
+
+        bool Validate(SpellInfo const* /*spellEntry*/)
+        {
+            if (!sSpellMgr->GetSpellInfo(SPELL_PIRATE_COSTUME_MALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_PIRATE_COSTUME_FEMALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_NINJA_COSTUME_MALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_NINJA_COSTUME_FEMALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_LEPER_GNOME_COSTUME_MALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_LEPER_GNOME_COSTUME_FEMALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_GHOST_COSTUME_MALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_GHOST_COSTUME_FEMALE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_PIRATE))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_NINJA))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_LEPER_GNOME))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_RANDOM))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_SKELETON))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_WISP))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_GHOST))
+                return false;
+            if (!sSpellMgr->GetSpellInfo(SPELL_HALLOWEEN_WAND_BAT))
+                return false;
+            return true;
+        }
+
+        void HandleScriptEffect()
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitPlayer();
+
+            if (!caster || !target)
+                return;
+
+            uint32 spellId = 0;
+            uint8 gender = target->getGender();
+
+            switch (GetSpellInfo()->Id)
+            {
+                case SPELL_HALLOWEEN_WAND_LEPER_GNOME:
+                    spellId = gender ? SPELL_LEPER_GNOME_COSTUME_FEMALE : SPELL_LEPER_GNOME_COSTUME_MALE;
+                    break;
+                case SPELL_HALLOWEEN_WAND_PIRATE:
+                    spellId = gender ? SPELL_PIRATE_COSTUME_FEMALE : SPELL_PIRATE_COSTUME_MALE;
+                    break;
+                case SPELL_HALLOWEEN_WAND_GHOST:
+                    spellId = gender ? SPELL_GHOST_COSTUME_FEMALE : SPELL_GHOST_COSTUME_MALE;
+                    break;
+                case SPELL_HALLOWEEN_WAND_NINJA:
+                    spellId = gender ? SPELL_NINJA_COSTUME_FEMALE : SPELL_NINJA_COSTUME_MALE;
+                    break;
+                case SPELL_HALLOWEEN_WAND_RANDOM:
+                    spellId = RAND(SPELL_HALLOWEEN_WAND_PIRATE, SPELL_HALLOWEEN_WAND_NINJA, SPELL_HALLOWEEN_WAND_LEPER_GNOME, SPELL_HALLOWEEN_WAND_SKELETON, SPELL_HALLOWEEN_WAND_WISP, SPELL_HALLOWEEN_WAND_GHOST, SPELL_HALLOWEEN_WAND_BAT);
+                    break;
+            }
+            caster->CastSpell(target, spellId, true);
+        }
+
+        void Register()
+        {
+            AfterHit += SpellHitFn(spell_halloween_wand_SpellScript::HandleScriptEffect);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_halloween_wand_SpellScript();
+    }
 };
 
 class spell_toss_stinky_bomb : public SpellScriptLoader
@@ -3885,4 +3994,5 @@ void AddSC_custom_fixes()
     new spell_toss_stinky_bomb();
     new spell_clean_stinky_bomb();
     new at_wickerman_festival();
+    new spell_halloween_wand();
 }

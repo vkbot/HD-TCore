@@ -1255,12 +1255,9 @@ void AddBattlegroundScripts()
 void AddSC_custom_fixes();
 void AddSC_hyd_lottery();
 void AddSC_icc_rep_rings();
-<<<<<<< HEAD
 void AddSC_npc_custom_summon();
 void AddSC_npc_mount();
 void AddSC_DuelReset();
-=======
->>>>>>> merge/master
 #endif
 
 void AddCustomScripts()
@@ -1270,11 +1267,8 @@ void AddCustomScripts()
 AddSC_custom_fixes();
 AddSC_hyd_lottery();
 AddSC_icc_rep_rings();
-<<<<<<< HEAD
 AddSC_npc_custom_summon();
 AddSC_npc_mount();
 AddSC_DuelReset();
-=======
->>>>>>> merge/master
 #endif
 }

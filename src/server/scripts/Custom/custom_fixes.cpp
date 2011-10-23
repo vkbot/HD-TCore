@@ -3824,7 +3824,7 @@ class at_wickerman_festival : public AreaTriggerScript
 
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/)
         {
-            player->GroupEventHappens(QUEST_CRASHING_WICKERMAN_FESTIVAL, player); break;
+            player->GroupEventHappens(QUEST_CRASHING_WICKERMAN_FESTIVAL, player);
         }
 };
 

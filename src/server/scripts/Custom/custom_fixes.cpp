@@ -3738,6 +3738,91 @@ private:
     uint64 tartekGUID;
 };
 
+enum HalloweenData
+{
+    NPC_STINKY_BOMB_CREDIT = 15415,
+    GO_STINKY_BOMB_FLASK   = 180449,
+    GO_STINKY_BOMB_CLOUD   = 180450,
+};
+
+class spell_toss_stinky_bomb : public SpellScriptLoader
+{
+public:
+    spell_toss_stinky_bomb() : SpellScriptLoader("spell_toss_stinky_bomb") {}
+
+    class spell_toss_stinky_bomb_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_toss_stinky_bomb_SpellScript)
+
+        void HandleScriptEffect(SpellEffIndex effIndex)
+        {
+            Unit* caster = GetCaster();
+
+            if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+                caster->ToPlayer()->KilledMonsterCredit(NPC_STINKY_BOMB_CREDIT, 0);
+        }
+
+        void Register()
+        {
+            OnEffectHit += SpellEffectFn(spell_toss_stinky_bomb_SpellScript::HandleScriptEffect, EFFECT_2, SPELL_EFFECT_SEND_EVENT);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_toss_stinky_bomb_SpellScript();
+    }
+};
+
+class spell_clean_stinky_bomb : public SpellScriptLoader
+{
+public:
+    spell_clean_stinky_bomb() : SpellScriptLoader("spell_clean_stinky_bomb") {}
+
+    class spell_clean_stinky_bomb_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_clean_stinky_bomb_SpellScript)
+
+        SpellCastResult CheckIfNearBomb()
+        {
+            Unit* caster = GetCaster();
+
+            if(GameObject* stinky = GetClosestGameObjectWithEntry(me, GO_STINKY_BOMB_FLASK, 15.0f))
+                return SPELL_CAST_OK;
+            else
+                return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+        }
+
+        void HandleCleanBombEffect(SpellEffIndex effIndex)
+        {
+            Unit* caster = GetCaster();
+
+            uint32 goId;
+
+            switch (effIndex)
+            {
+                case EFFECT_0: goId = GO_STINKY_BOMB_FLASK;
+                case EFFECT_1: goId = GO_STINKY_BOMB_CLOUD;
+            }
+
+            if (GameObject* stinky = GetClosestGameObjectWithEntry(me, goId, 15.0f))
+                stinky->RemoveFromWorld();
+        }
+
+        void Register()
+        {
+            OnCheckCast += SpellCheckCastFn(spell_clean_stinky_bomb_SpellScript::CheckIfNearBomb);
+            OnEffectHit += SpellEffectFn(spell_clean_stinky_bomb_SpellScript::HandleCleanBombEffect, EFFECT_0, SPELL_EFFECT_ACTIVATE_OBJECT);
+            OnEffectHit += SpellEffectFn(spell_clean_stinky_bomb_SpellScript::HandleCleanBombEffect, EFFECT_1, SPELL_EFFECT_ACTIVATE_OBJECT);
+        }
+    };
+
+    SpellScript* GetSpellScript() const
+    {
+        return new spell_clean_stinky_bomb_SpellScript();
+    }
+};
+
 void AddSC_custom_fixes()
 {
     new go_not_a_bug;
@@ -3792,4 +3877,6 @@ void AddSC_custom_fixes()
     new npc_dark_iron_guzzler();
     new at_brewfest();
     new go_mistwhisper_treasure();
+    new spell_toss_stinky_bomb();
+    new spell_clean_stinky_bomb();
 }

@@ -3741,8 +3741,11 @@ private:
 enum HalloweenData
 {
     NPC_STINKY_BOMB_CREDIT = 15415,
+
     GO_STINKY_BOMB_FLASK   = 180449,
     GO_STINKY_BOMB_CLOUD   = 180450,
+
+    QUEST_CRASHING_WICKERMAN_FESTIVAL = 1658,
 };
 
 class spell_toss_stinky_bomb : public SpellScriptLoader
@@ -3787,7 +3790,7 @@ public:
         {
             Unit* caster = GetCaster();
 
-            if(GameObject* stinky = GetClosestGameObjectWithEntry(caster, GO_STINKY_BOMB_FLASK, 15.0f))
+            if(GameObject* stinky = GetClosestGameObjectWithEntry(caster, GO_STINKY_BOMB_CLOUD, 15.0f))
                 return SPELL_CAST_OK;
             else
                 return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
@@ -3797,8 +3800,6 @@ public:
         {
             Unit* caster = GetCaster();
 
-            if (GameObject* stinky = GetClosestGameObjectWithEntry(caster, GO_STINKY_BOMB_FLASK, 15.0f))
-                stinky->RemoveFromWorld();
             if (GameObject* stinky = GetClosestGameObjectWithEntry(caster, GO_STINKY_BOMB_CLOUD, 15.0f))
                 stinky->RemoveFromWorld();
         }
@@ -3806,7 +3807,6 @@ public:
         void Register()
         {
             OnCheckCast += SpellCheckCastFn(spell_clean_stinky_bomb_SpellScript::CheckIfNearBomb);
-            //OnEffectHit += SpellEffectFn(spell_clean_stinky_bomb_SpellScript::HandleCleanBombEffect, EFFECT_0, SPELL_EFFECT_ACTIVATE_OBJECT);
             OnEffectHit += SpellEffectFn(spell_clean_stinky_bomb_SpellScript::HandleCleanBombEffect, EFFECT_1, SPELL_EFFECT_ACTIVATE_OBJECT);
         }
     };
@@ -3815,6 +3815,17 @@ public:
     {
         return new spell_clean_stinky_bomb_SpellScript();
     }
+};
+
+class at_wickerman_festival : public AreaTriggerScript
+{
+    public:
+        at_wickerman_festival() : AreaTriggerScript("at_wickerman_festival") {}
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/)
+        {
+            player->GroupEventHappens(QUEST_CRASHING_WICKERMAN_FESTIVAL, player); break;
+        }
 };
 
 void AddSC_custom_fixes()
@@ -3873,4 +3884,5 @@ void AddSC_custom_fixes()
     new go_mistwhisper_treasure();
     new spell_toss_stinky_bomb();
     new spell_clean_stinky_bomb();
+    new at_wickerman_festival();
 }

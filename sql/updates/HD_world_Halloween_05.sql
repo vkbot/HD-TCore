@@ -1,7 +1,7 @@
 SET @GO_GUID := 801056;
 SET @CREATURE_GUID := 600680;
 
-DELETE FROM `areatrigger_scripts` WHERE spell_id IN (3991);
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (3991);
 INSERT INTO `areatrigger_scripts` VALUES
 (3991, 'at_wickerman_festival');
 
@@ -38,6 +38,6 @@ INSERT INTO `game_event_gameobject` VALUES
 
 DELETE FROM `game_event_creature` WHERE `guid` BETWEEN @CREATURE_GUID+00 AND @CREATURE_GUID+02;
 INSERT INTO `game_event_creature` VALUES
-(12, CREATURE_GUID+00),
-(12, CREATURE_GUID+01),
-(12, CREATURE_GUID+02);
+(12, @CREATURE_GUID+00),
+(12, @CREATURE_GUID+01),
+(12, @CREATURE_GUID+02);

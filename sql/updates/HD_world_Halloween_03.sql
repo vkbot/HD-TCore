@@ -35,8 +35,10 @@ INSERT INTO `item_loot_template` (`entry`, `item`, `ChanceOrQuestChance`, `lootm
 (54516,33226,100,1,0,20,20);
 
 -- spawn
-SET @guid := 303110;
-
-DELETE FROM `creature` WHERE `id`=23682;
+DELETE FROM `creature` WHERE `id`=23682 and `guid`=303110;
 INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
-(@guid,'23682','189','1','1','0','0','1763.1','1347.73','17.5602','6.20833','60','0','0','126000','3994','0','0','0','0');
+(303110,'23682','189','1','1','0','0','1763.1','1347.73','17.5602','6.20833','60','0','0','126000','3994','0','0','0','0');
+
+-- link spawn to Hallow's End event
+DELETE FROM game_event_creature WHERE guid=303110;
+INSERT INTO game_event_creature VALUES (12,303110);

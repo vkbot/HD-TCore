@@ -39,6 +39,6 @@
 #  define _FULLVERSION _PACKAGENAME " rev. " VER_PRODUCTVERSION_STR " (Win32, " _BUILD_DIRECTIVE ")"
 # endif
 #else
-#  define _FULLVERSION _PACKAGENAME " rev. 0.94 (Unix). Last core update: 22.10.2011 "
+#  define _FULLVERSION _PACKAGENAME " rev. 0.95 (Unix). Last core update: 23.10.2011 "
 #endif
 #endif

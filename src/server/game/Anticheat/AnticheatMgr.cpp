@@ -178,7 +178,7 @@ void AnticheatMgr::SpeedHackDetection(Player* player,MovementInfo movementInfo)
     if ((sWorld->getIntConfig(CONFIG_ANTICHEAT_DETECTIONS_ENABLED) & SPEED_HACK_DETECTION) == 0)
         return;
 
-	if (player->GetMapId() == 607 || player->HasAura(35477) || player->HasAura(2983) || player->HasAura(1850) ||
+    if (player->GetMapId() == 607 || player->HasAura(35477) || player->HasAura(2983) || player->HasAura(1850) ||
         player->HasAuraType(SPELL_AURA_FEATHER_FALL) || player->HasAuraType(SPELL_AURA_SAFE_FALL) ||
         player->GetMapId() == 369 || player->GetMapId() == 582 || player->GetMapId() == 584 || player->GetMapId() == 586 ||
         player->GetMapId() == 587 || player->GetMapId() == 588 || player->GetMapId() == 589 || player->GetMapId() == 590 ||
@@ -344,6 +344,7 @@ void AnticheatMgr::BuildReport(Player* player,uint8 reportType)
         WorldPacket data(SMSG_NOTIFICATION, (str.size()+1));
         data << str;
         sWorld->SendGlobalGMMessage(&data);
+        sLog->outWarden("Passive AntiCheat: %s detected as possible cheater. HackType: %u.", player->GetName(), reportType);
     }
 }
 

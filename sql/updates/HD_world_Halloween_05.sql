@@ -1,5 +1,5 @@
-SET @GO_GUID := 1098532;
-SET @CREATURE_GUID := 14903241;
+SET @GO_GUID := 801056;
+SET @CREATURE_GUID := 600680;
 
 DELETE FROM `areatrigger_scripts` WHERE spell_id IN (3991);
 INSERT INTO `areatrigger_scripts` VALUES

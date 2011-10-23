@@ -3797,22 +3797,16 @@ public:
         {
             Unit* caster = GetCaster();
 
-            uint32 goId;
-
-            switch (effIndex)
-            {
-                case EFFECT_0: goId = GO_STINKY_BOMB_FLASK;
-                case EFFECT_1: goId = GO_STINKY_BOMB_CLOUD;
-            }
-
-            if (GameObject* stinky = GetClosestGameObjectWithEntry(caster, goId, 15.0f))
+            if (GameObject* stinky = GetClosestGameObjectWithEntry(caster, GO_STINKY_BOMB_FLASK, 15.0f))
+                stinky->RemoveFromWorld();
+            if (GameObject* stinky = GetClosestGameObjectWithEntry(caster, GO_STINKY_BOMB_CLOUD, 15.0f))
                 stinky->RemoveFromWorld();
         }
 
         void Register()
         {
             OnCheckCast += SpellCheckCastFn(spell_clean_stinky_bomb_SpellScript::CheckIfNearBomb);
-            OnEffectHit += SpellEffectFn(spell_clean_stinky_bomb_SpellScript::HandleCleanBombEffect, EFFECT_0, SPELL_EFFECT_ACTIVATE_OBJECT);
+            //OnEffectHit += SpellEffectFn(spell_clean_stinky_bomb_SpellScript::HandleCleanBombEffect, EFFECT_0, SPELL_EFFECT_ACTIVATE_OBJECT);
             OnEffectHit += SpellEffectFn(spell_clean_stinky_bomb_SpellScript::HandleCleanBombEffect, EFFECT_1, SPELL_EFFECT_ACTIVATE_OBJECT);
         }
     };

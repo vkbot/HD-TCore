@@ -3937,6 +3937,37 @@ class at_wickerman_festival : public AreaTriggerScript
         }
 };
 
+#define GOSSIP_WICKERMAN_EMBER "Usar las cenizas como pintura de guerra para la cara" //"Smear the ash on my face like war paint!" 
+
+enum WickermanEmberGo
+{
+    SPELL_GRIM_VISAGE   = 24705,
+};
+
+class go_wickerman_ember : public GameObjectScript
+{
+public:
+    go_wickerman_ember() : GameObjectScript("go_wickerman_ember") { }
+
+    bool OnGossipHello(Player* player, GameObject* go)
+    {
+        if (!player->HasAura(SPELL_GRIM_VISAGE))
+            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_WICKERMAN_EMBER, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
+        player->SEND_GOSSIP_MENU(player->GetGossipTextId(go), go->GetGUID());
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, GameObject* go, uint32 /*sender*/, uint32 action)
+    {
+        if (action == GOSSIP_ACTION_INFO_DEF)
+            go->CastSpell(player, SPELL_GRIM_VISAGE);
+
+        player->PlayerTalkClass->ClearMenus();
+        player->CLOSE_GOSSIP_MENU();
+        return true;
+    }
+};
+
 void AddSC_custom_fixes()
 {
     new go_not_a_bug;
@@ -3995,4 +4026,5 @@ void AddSC_custom_fixes()
     new spell_clean_stinky_bomb();
     new at_wickerman_festival();
     new spell_halloween_wand();
+    new go_wickerman_ember();
 }

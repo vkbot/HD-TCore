@@ -5,9 +5,10 @@ DELETE FROM `areatrigger_scripts` WHERE `entry` IN (3991);
 INSERT INTO `areatrigger_scripts` VALUES
 (3991, 'at_wickerman_festival');
 
+UPDATE `gameobject_template` SET `flags` = 17 WHERE `entry` = 180433;
 DELETE FROM `gameobject` WHERE `id` IN (180433, 180432, 180434);
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
-(@GO_GUID+00,180433,0,1,1,1734.04,504.05,42.2861,1.4131,0,0,0.649213,0.760607,300,0,1),
+(@GO_GUID+00,180433,0,1,1,1734.04,504.05,42.2861,1.4131,0,0,0.649213,0.760607,300,0,0),
 (@GO_GUID+01,180432,0,1,1,1749.28,507.611,39.2312,1.49635,0,0,0.680301,0.732933,300,0,1),
 (@GO_GUID+02,180432,0,1,1,1712.63,507.05,38.2495,1.58824,0,0,0.713246,0.700914,300,0,1),
 (@GO_GUID+03,180405,0,1,1,1746.07,517.066,38.936,2.83466,0,0,0.988247,0.152864,300,0,1),

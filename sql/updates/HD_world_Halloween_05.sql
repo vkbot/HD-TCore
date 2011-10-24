@@ -6,7 +6,7 @@ INSERT INTO `areatrigger_scripts` VALUES
 (3991, 'at_wickerman_festival');
 
 UPDATE `gameobject_template` SET `flags` = 17 WHERE `entry` = 180433;
-DELETE FROM `gameobject` WHERE `id` IN (180433, 180432, 180434);
+DELETE FROM `gameobject` WHERE `id` IN (180433, 180432, 180434, 180437);
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
 (@GO_GUID+00,180433,0,1,1,1734.04,504.05,42.2861,1.4131,0,0,0.649213,0.760607,300,0,0),
 (@GO_GUID+01,180432,0,1,1,1749.28,507.611,39.2312,1.49635,0,0,0.680301,0.732933,300,0,1),
@@ -17,7 +17,12 @@ INSERT INTO `gameobject` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `positi
 (@GO_GUID+06,180434,0,1,1,1758.89,513.276,35.8655,1.28897,0,0,0.600788,0.799409,300,0,1),
 (@GO_GUID+07,180434,0,1,1,1704.48,518.689,35.4045,1.30704,0,0,0.607984,0.793949,300,0,1),
 (@GO_GUID+08,180434,0,1,1,1739.78,473.238,61.6565,1.59371,0,0,0.71516,0.698961,300,0,1),
-(@GO_GUID+09,180434,0,1,1,1717.32,472.723,61.6566,1.59371,0,0,0.71516,0.698961,300,0,1);
+(@GO_GUID+09,180434,0,1,1,1717.32,472.723,61.6566,1.59371,0,0,0.71516,0.698961,300,0,1,
+(@GO_GUID+10,180437,0,1,1,1744.62,504.954,40.8518,1.23403,0,0,0.578603,0.81561,300,0,1),
+(@GO_GUID+11,180437,0,1,1,1729.13,510.378,40.8719,1.23403,0,0,0.578603,0.81561,300,0,1),
+(@GO_GUID+12,180437,0,1,1,1721.77,503.938,41.1381,1.23403,0,0,0.578603,0.81561,300,0,1),
+(@GO_GUID+13,180437,0,1,1,1744.96,496.25,41.44,1.24581,0,0,0.583397,0.812187,300,0,1);
+
 
 DELETE FROM `creature` WHERE `id` IN (15195, 15197, 15199) AND `guid` BETWEEN @CREATURE_GUID+00 AND @CREATURE_GUID+05;
 INSERT INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`) VALUES
@@ -38,7 +43,11 @@ INSERT INTO `game_event_gameobject` VALUES
 (12, @GO_GUID+06),
 (12, @GO_GUID+07),
 (12, @GO_GUID+08),
-(12, @GO_GUID+09);
+(12, @GO_GUID+09),
+(12, @GO_GUID+10),
+(12, @GO_GUID+11),
+(12, @GO_GUID+12),
+(12, @GO_GUID+13);
 
 DELETE FROM `game_event_creature` WHERE `guid` BETWEEN @CREATURE_GUID+00 AND @CREATURE_GUID+02;
 INSERT INTO `game_event_creature` VALUES
@@ -47,3 +56,12 @@ INSERT INTO `game_event_creature` VALUES
 (12, @CREATURE_GUID+02),
 (12, @CREATURE_GUID+03),
 (12, @CREATURE_GUID+04);
+
+-- Cenizas del hombre de mimbre
+DELETE FROM `gossip_menu` WHERE `entry` = 6535;
+INSERT INTO `gossip_menu` VALUES
+(6535, 100);
+DELETE FROM `npc_text` WHERE `ID` = 100;
+INSERT INTO `npc_text`(`ID`, `text0_0`) VALUES
+(100, 'Las cenizas del hombre de mimbre irradian poder mágico.');
+UPDATE `gameobject_template` SET `faction` = 0, `ScriptName` = 'go_wickerman_ember' WHERE `entry` = 180437;

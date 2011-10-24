@@ -16,6 +16,7 @@
  */
 
 #include "ScriptPCH.h"
+#include "Spell.h"
 #include "Vehicle.h"
 #include "ScriptedEscortAI.h"
 
@@ -3765,6 +3766,16 @@ enum HalloweenData
     SPELL_HALLOWEEN_WAND_WISP           = 24733,
     SPELL_HALLOWEEN_WAND_GHOST          = 24737,
     SPELL_HALLOWEEN_WAND_BAT            = 24741,
+
+    SPELL_GRIM_VISAGE                   = 24705,
+
+    // Headless Horseman fire event
+    EVENT_HIT_BY_BUCKET                 = 0,
+    NPC_HEADLESS_FIRE                   = 23537,
+    NPC_FIRE_DUMMY                      = 1,
+
+
+    SPELL_WATER_SPOUT_VISUAL            = 42348,
 };
 
 class spell_halloween_wand : public SpellScriptLoader
@@ -3934,15 +3945,11 @@ class at_wickerman_festival : public AreaTriggerScript
         bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/)
         {
             player->GroupEventHappens(QUEST_CRASHING_WICKERMAN_FESTIVAL, player);
+            return true;
         }
 };
 
 #define GOSSIP_WICKERMAN_EMBER "Usar las cenizas como pintura de guerra para la cara" //"Smear the ash on my face like war paint!" 
-
-enum WickermanEmberGo
-{
-    SPELL_GRIM_VISAGE   = 24705,
-};
 
 class go_wickerman_ember : public GameObjectScript
 {
@@ -3966,6 +3973,33 @@ public:
         player->CLOSE_GOSSIP_MENU();
         return true;
     }
+};
+
+class item_water_bucket : public ItemScript
+{
+    public:
+
+        item_water_bucket() : ItemScript("item_water_bucket") { }
+
+        bool OnUse(Player* player, Item* item, SpellCastTargets const& targets)
+        {
+            if (Creature* dummy = player->SummonCreature(NPC_FIRE_DUMMY, targets.GetDst()->GetPositionX(), targets.GetDst()->GetPositionY(), targets.GetDst()->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 500))
+            {
+                std::list<Creature*> firesList;
+                Trinity::AllCreaturesOfEntryInRange checker(dummy, NPC_HEADLESS_FIRE, 3.0f);
+                Trinity::CreatureListSearcher<Trinity::AllCreaturesOfEntryInRange> searcher(dummy, firesList, checker);
+                player->VisitNearbyObject(3.0f, searcher);
+
+                if (firesList.empty())
+                    return false;
+
+                for (std::list<Creature*>::const_iterator i = firesList.begin(); i != firesList.end(); ++i)
+                    if ((*i)->isAlive())
+                        (*i)->CastSpell((*i), SPELL_WATER_SPOUT_VISUAL, true);
+                        //(*i)->AI()->SetGUID(player->GetGUID(), EVENT_HIT_BY_BUCKET)
+            }
+            return false;
+        }
 };
 
 void AddSC_custom_fixes()
@@ -4027,4 +4061,5 @@ void AddSC_custom_fixes()
     new at_wickerman_festival();
     new spell_halloween_wand();
     new go_wickerman_ember();
+    new item_water_bucket();
 }

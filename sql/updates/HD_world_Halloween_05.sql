@@ -57,7 +57,7 @@ INSERT INTO `game_event_creature` VALUES
 (12, @CREATURE_GUID+03),
 (12, @CREATURE_GUID+04);
 
--- Cenizas del hombre de mimbre
+-- Wickerman Ashes
 DELETE FROM `gossip_menu` WHERE `entry` = 6535;
 INSERT INTO `gossip_menu` VALUES
 (6535, 100);
@@ -65,3 +65,6 @@ DELETE FROM `npc_text` WHERE `ID` = 100;
 INSERT INTO `npc_text`(`ID`, `text0_0`) VALUES
 (100, 'Las cenizas del hombre de mimbre irradian poder mágico.');
 UPDATE `gameobject_template` SET `faction` = 0, `ScriptName` = 'go_wickerman_ember' WHERE `entry` = 180437;
+
+-- Wickerman Guardians
+UPDATE `creature_template` SET `Armor_mod` = 2.6, `minlevel` = 80, `maxlevel` = 80, `mechanic_immune_mask` = 748240635 WHERE `entry` = 15195;

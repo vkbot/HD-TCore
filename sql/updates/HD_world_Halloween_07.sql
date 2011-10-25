@@ -1,5 +1,8 @@
 SET @CREATURE_GUID := 600685;
 
+UPDATE `item_template` SET `ScriptName` = 'item_water_bucket' WHERE `entry` = 32971;
+UPDATE `creature_template` SET `ScriptName` = 'npc_halloween_fire' WHERE `entry` = 23537;
+
 DELETE FROM `creature` WHERE `id` IN (23537) AND `guid` BETWEEN @CREATURE_GUID+00 AND @CREATURE_GUID+10;
 INSERT INTO `creature` (`guid`,`id`,`map`,`spawnMask`,`phaseMask`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`spawndist`,`currentwaypoint`,`curhealth`,`curmana`,`MovementType`,`npcflag`,`unit_flags`,`dynamicflags`) VALUES
 -- Spawn fire dummys for fire effigys

@@ -3770,14 +3770,23 @@ enum HalloweenData
     SPELL_GRIM_VISAGE                   = 24705,
 
     // Headless Horseman fire event
-    EVENT_HIT_BY_BUCKET                 = 0,
     NPC_HEADLESS_FIRE                   = 23537,
     NPC_FIRE_DUMMY                      = 1,
+    GO_FIRE_EFFIGY                      = 186720,
 
 
     SPELL_WATER_SPOUT_VISUAL            = 42348,
+    SPELL_FIRE_VISUAL_BUFF              = 42074,
+    SPELL_FIRE_SIZE_STACK               = 42091,
 };
 
+enum HalloweenFireEvents
+{
+    EVENT_FIRE_NONE,
+    EVENT_FIRE_HIT_BY_BUCKET,
+    EVENT_FIRE_VISUAL_WATER,
+    EVENT_FIRE_GROW_FIRE,
+};
 class spell_halloween_wand : public SpellScriptLoader
 {
 public:
@@ -3991,15 +4000,98 @@ class item_water_bucket : public ItemScript
                 player->VisitNearbyObject(3.0f, searcher);
 
                 if (firesList.empty())
-                    return false;
+                {
+                    // Just some extra checks...
+                    Creature* fire = dummy->FindNearestCreature(NPC_HEADLESS_FIRE, 3.0f, true);
+                    if (fire && fire->isAlive())
+                        fire->AI()->SetGUID(player->GetGUID(), EVENT_FIRE_HIT_BY_BUCKET);
+                    else
+                        return false;
+                }
 
                 for (std::list<Creature*>::const_iterator i = firesList.begin(); i != firesList.end(); ++i)
-                    if ((*i)->isAlive())
-                        (*i)->CastSpell((*i), SPELL_WATER_SPOUT_VISUAL, true);
-                        //(*i)->AI()->SetGUID(player->GetGUID(), EVENT_HIT_BY_BUCKET)
+                    if ((*i) && (*i)->isAlive())
+                        (*i)->AI()->SetGUID(player->GetGUID(), EVENT_FIRE_HIT_BY_BUCKET);
             }
             return false;
         }
+};
+
+class npc_halloween_fire : public CreatureScript
+{
+public:
+    npc_halloween_fire() : CreatureScript("npc_halloween_fire") { }
+
+
+    struct npc_halloween_fireAI : public ScriptedAI
+    {
+        npc_halloween_fireAI(Creature* c) : ScriptedAI(c) {}
+
+        bool fireEffigy;
+        EventMap events;
+        uint64 _playerGUID;
+
+        void Reset()
+        {
+            fireEffigy = false;
+            _playerGUID = 0;
+            events.Reset();
+            // Mark the npc if is for handling effigy instead of horseman fires
+            if(GameObject* effigy = me->FindNearestGameObject(GO_FIRE_EFFIGY, 0.5f))
+                fireEffigy = true;
+            events.ScheduleEvent(EVENT_FIRE_GROW_FIRE, 1000);
+        }
+
+        void UpdateAI(const uint32 diff)
+        {
+            events.Update(diff);
+
+            switch(events.ExecuteEvent())
+            {
+                case EVENT_FIRE_VISUAL_WATER:
+                    me->CastSpell(me, SPELL_WATER_SPOUT_VISUAL, true);
+                    if (fireEffigy)
+                    {
+                        if (GameObject* effigy = me->FindNearestGameObject(GO_FIRE_EFFIGY, 0.5f))
+                        {
+                            effigy->SetGoState(GO_STATE_READY);
+                            if (Player* player = me->GetPlayer(*me, _playerGUID))
+                                player->KilledMonsterCredit(me->GetEntry(),0);
+                            events.ScheduleEvent(EVENT_FIRE_GROW_FIRE, 22000);
+                        }
+                    }
+                    break;
+                case EVENT_FIRE_GROW_FIRE:
+                    if (fireEffigy)
+                    {
+                        if(GameObject* effigy = me->FindNearestGameObject(GO_FIRE_EFFIGY, 0.5f))
+                            effigy->SetGoState(GO_STATE_ACTIVE);
+                    }
+                    break;
+
+            }
+        }
+
+        void SetGUID(uint64 guid, int32 id)
+        {
+            if (id == EVENT_FIRE_HIT_BY_BUCKET)
+            {
+                _playerGUID = guid;
+                if (fireEffigy)
+                {
+                    if (GameObject* effigy = me->FindNearestGameObject(GO_FIRE_EFFIGY, 0.5f))
+                        if (effigy->GetGoState() == GO_STATE_ACTIVE)
+                            events.ScheduleEvent(EVENT_FIRE_VISUAL_WATER, 1000);
+                } else
+                    events.ScheduleEvent(EVENT_FIRE_VISUAL_WATER, 1000);
+            }
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const
+    {
+        return new npc_halloween_fireAI(creature);
+    }
 };
 
 void AddSC_custom_fixes()
@@ -4062,4 +4154,5 @@ void AddSC_custom_fixes()
     new spell_halloween_wand();
     new go_wickerman_ember();
     new item_water_bucket();
+    new npc_halloween_fire();
 }
